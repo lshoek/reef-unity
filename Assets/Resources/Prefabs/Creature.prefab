@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 8687540420625168428}
   - component: {fileID: 3141572901989654463}
   - component: {fileID: 1720354155546497146}
-  m_Layer: 8
+  m_Layer: 11
   m_Name: Creature
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -43,10 +43,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 7449978841299572837}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c9484af5265d2a44dbb458dd94e3b142, type: 3}
+  m_Script: {fileID: 11500000, guid: d7754930663e0a84d8d038aacadef1cc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  TurningSpeed: 1
+  TurningSpeed: 2
   Delay: 2
   Force: 5
   TargetProximity: 5
@@ -73,7 +73,7 @@ SphereCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7449978841299572837}
-  m_Material: {fileID: 13400000, guid: d677852ecc2156440bba32dda5296a5f, type: 2}
+  m_Material: {fileID: 0}
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2
@@ -90,7 +90,7 @@ GameObject:
   - component: {fileID: 5714329553909910588}
   - component: {fileID: 7667693787069967366}
   - component: {fileID: 5685025210671465703}
-  m_Layer: 8
+  m_Layer: 11
   m_Name: CreatureObject
   m_TagString: Untagged
   m_Icon: {fileID: 0}

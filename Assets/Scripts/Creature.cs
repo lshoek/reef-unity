@@ -7,11 +7,12 @@ public class Creature : MonoBehaviour
     public Renderer Renderer { get; private set; }
     public SphereCollider Collider { get; private set; }
 
-    public enum CreatureBehavior { Free, Tasked };
-    public CreatureBehavior Behavior { get; private set; }
+    public enum CreatureBehavior { Free, Tasked, Static };
+    public CreatureBehavior CurrentBehavior { get; private set; }
 
     public bool ColliderActive { get; set; }
 
+    public bool IsActive = true;
     public float TurningSpeed = 2.0f;
     public float Delay = 2.0f;
     public float Force = 5.0f;
@@ -38,18 +39,20 @@ public class Creature : MonoBehaviour
         position = transform.position;
         forward = (position + Random.insideUnitCircle).normalized;
 
-        Behavior = CreatureBehavior.Free;
+        CurrentBehavior = CreatureBehavior.Free;
         ResetTargetLocation();
         Renderer.material.SetFloat("_Alpha", 0);
     }
 
     void Update()
     {
+        if (CurrentBehavior == CreatureBehavior.Static) return;
+
         position = transform.position;
         if (Vector2.Distance(position, targetLocation) < TargetProximity)
         {
-            if (Behavior == CreatureBehavior.Free) ResetTargetLocation();
-            else if (Behavior == CreatureBehavior.Tasked)
+            if (CurrentBehavior == CreatureBehavior.Free) ResetTargetLocation();
+            else if (CurrentBehavior == CreatureBehavior.Tasked)
             {
                 taskFinished = true;
             };
@@ -69,10 +72,15 @@ public class Creature : MonoBehaviour
         }
     }
 
+    public void SetStatic()
+    {
+        CurrentBehavior = CreatureBehavior.Static;
+    }
+
     public void SetTargetLocation(Vector2 target)
     {
         targetLocation = target;
-        Behavior = CreatureBehavior.Tasked;
+        CurrentBehavior = CreatureBehavior.Tasked;
     }
 
     public void SetFree()
@@ -80,7 +88,7 @@ public class Creature : MonoBehaviour
         ResetTargetLocation();
         StartCoroutine(PeriodicImpulse(Delay));
         taskFinished = false;
-        Behavior = CreatureBehavior.Free;
+        CurrentBehavior = CreatureBehavior.Free;
     }
 
     private void ResetTargetLocation()
@@ -106,8 +114,8 @@ public class Creature : MonoBehaviour
             if (ColliderActive)
             {
                 Collider.attachedRigidbody.AddForce(forward * Force, ForceMode.Impulse);
-                yield return new WaitForSeconds(period);
             }
+            yield return new WaitForSeconds(period);
         }
     }
 
@@ -133,6 +141,12 @@ public class Creature : MonoBehaviour
             yield return null;
         }
         Renderer.material.SetFloat("_Alpha", 1f);
+    }
+
+    public void SetActive(bool active)
+    {
+        IsActive = active;
+        Renderer.enabled = active;
     }
 
     void OnDrawGizmos()

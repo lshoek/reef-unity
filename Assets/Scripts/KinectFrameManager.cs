@@ -4,8 +4,7 @@ using Windows.Kinect;
 
 public class KinectFrameManager : MonoBehaviour
 {
-    private ColorFrameReader m_pColorFrameReader;
-    private DepthFrameReader m_pDepthFrameReader;
+    private MultiSourceFrameReader m_pMultiSourceFrameReader;
 
     private KinectSensor m_pKinectSensor;
     private CoordinateMapper m_pCoordinateMapper;
@@ -17,14 +16,26 @@ public class KinectFrameManager : MonoBehaviour
     private ushort[] pDepthBuffer;
 
     private Texture2D m_pColorRGBX;
+    private Texture2D m_pDepth;
+
+    public bool EnableKinect = true;
+    public bool EnableDepthTexture = true;
 
     public int DepthFrameWidth = 512;
     public int DepthFrameHeight = 424;
-    public int ColorFrameWidth = 1920;
-    public int ColorFrameHeight = 1080;
+    public int ColorFrameWidth = 960;
+    public int ColorFrameHeight = 540;
+
+    public readonly int BalancedDownsampling = 8;
+    public readonly int ColliderMeshDownsampling = 16;
+
+    public int DepthWidthDownsampled { get { return DepthFrameWidth / ColliderMeshDownsampling; } }
+    public int DepthHeightDownsampled { get { return DepthFrameHeight / ColliderMeshDownsampling; } }
+    public int MaxDepthSamples { get { return DepthWidthDownsampled * DepthHeightDownsampled; } }
 
     private long frameCount = 0;
-    public float UpwardsTranslation = 0.0f;
+    public float UpwardsTranslation = 0;
+    public int MaxReliableDistance = 4500;
 
     public ushort[] GetDepthData()
     {
@@ -34,6 +45,11 @@ public class KinectFrameManager : MonoBehaviour
     public Texture2D GetColorTexture()
     {
         return m_pColorRGBX;
+    }
+
+    public Texture2D GetDepthTexture()
+    {
+        return m_pDepth;
     }
 
     public DepthSpacePoint[] GetDepthCoordinates()
@@ -52,16 +68,12 @@ public class KinectFrameManager : MonoBehaviour
         pDepthBuffer = new ushort[DepthFrameWidth * DepthFrameHeight];
 
         m_pColorRGBX = new Texture2D(ColorFrameWidth, ColorFrameHeight, TextureFormat.RGBA32, false);
+        m_pDepth = new Texture2D(DepthFrameWidth, DepthFrameHeight, TextureFormat.R16, false);
 
         m_pDepthCoordinates = new DepthSpacePoint[ColorFrameWidth * ColorFrameHeight];
         m_pColorSpacePoints = new ColorSpacePoint[DepthFrameWidth * DepthFrameHeight];
 
         InitDefaultSensor();
-
-        if (m_pKinectSensor != null)
-        {
-            m_pColorSpacePoints = new ColorSpacePoint[m_pKinectSensor.DepthFrameSource.FrameDescription.LengthInPixels];
-        }
     }
 
     private void InitDefaultSensor()
@@ -71,53 +83,63 @@ public class KinectFrameManager : MonoBehaviour
         if (m_pKinectSensor != null)
         {
             m_pKinectSensor.Open();
+
             m_pCoordinateMapper = m_pKinectSensor.CoordinateMapper;
+            MaxReliableDistance = m_pKinectSensor.DepthFrameSource.DepthMaxReliableDistance;
 
             if (m_pKinectSensor.IsOpen)
             {
-                m_pColorFrameReader = m_pKinectSensor.ColorFrameSource.OpenReader();
-                m_pDepthFrameReader = m_pKinectSensor.DepthFrameSource.OpenReader();
+                m_pMultiSourceFrameReader = m_pKinectSensor.OpenMultiSourceFrameReader(FrameSourceTypes.Depth | FrameSourceTypes.Color);
             }
         }
-        if (m_pKinectSensor == null)
+        if (!EnableKinect)
         {
-            Debug.LogError("No ready Kinect found!");
+            m_pColorRGBX = Resources.Load("Textures/Dummies/oceanfloor") as Texture2D;
+            m_pDepth = Resources.Load("Textures/Dummies/depthdummy") as Texture2D;
+
+            for (int i = 0; i < pDepthBuffer.Length; i++)
+            {
+                pDepthBuffer[i] = (ushort)MaxReliableDistance;
+            }
         }
     }
 
     void Update()
     {
-        if (m_pDepthFrameReader == null | m_pColorFrameReader == null)
+        if (m_pMultiSourceFrameReader == null)
         {
             return;
         }
-
-        frameCount++;
-        using (DepthFrame pDepthFrame = m_pDepthFrameReader.AcquireLatestFrame())
+        
+        MultiSourceFrame pMultiSourceFrame = m_pMultiSourceFrameReader.AcquireLatestFrame();
+        if (pMultiSourceFrame != null)
         {
-            using (ColorFrame pColorFrame = m_pColorFrameReader.AcquireLatestFrame())
+            frameCount++;
+            using (DepthFrame pDepthFrame = pMultiSourceFrame.DepthFrameReference.AcquireFrame())
             {
-                // Get Depth Frame Data.
-                if (pDepthFrame != null)
+                using (ColorFrame pColorFrame = pMultiSourceFrame.ColorFrameReference.AcquireFrame())
                 {
-                    GCHandle pDepthData = GCHandle.Alloc(pDepthBuffer, GCHandleType.Pinned);
-                    pDepthFrame.CopyFrameDataToIntPtr(pDepthData.AddrOfPinnedObject(), (uint)pDepthBuffer.Length * sizeof(ushort));
-                    pDepthData.Free();
-                }
+                    // Get Depth Frame Data
+                    if (pDepthFrame != null)
+                    {
+                        GCHandle pDepthData = GCHandle.Alloc(pDepthBuffer, GCHandleType.Pinned);
+                        pDepthFrame.CopyFrameDataToIntPtr(pDepthData.AddrOfPinnedObject(), (uint)pDepthBuffer.Length * sizeof(ushort));
+                        pDepthData.Free();
+                        pDepthFrame.Dispose();
+                    }
 
-                // Get Color Frame Data
-                if (pColorFrame != null)
-                {
-                    FrameDescription fd = pColorFrame.FrameDescription;
-                    Debug.Log($"{fd.Width}x{fd.Height} {fd.LengthInPixels} {fd.BytesPerPixel}");
-
-                    GCHandle pColorData = GCHandle.Alloc(pColorBuffer, GCHandleType.Pinned);
-                    pColorFrame.CopyConvertedFrameDataToIntPtr(pColorData.AddrOfPinnedObject(), (uint)pColorBuffer.Length, ColorImageFormat.Rgba);
-                    pColorData.Free();
+                    // Get Color Frame Data
+                    if (pColorFrame != null)
+                    {
+                        GCHandle pColorData = GCHandle.Alloc(pColorBuffer, GCHandleType.Pinned);
+                        pColorFrame.CopyConvertedFrameDataToIntPtr(pColorData.AddrOfPinnedObject(), (uint)pColorBuffer.Length, ColorImageFormat.Rgba);
+                        pColorData.Free();
+                        pColorFrame.Dispose();
+                    }
+                    ProcessFrame();
                 }
             }
         }
-        //ProcessFrame();
     }
 
     void ProcessFrame()
@@ -132,7 +154,10 @@ public class KinectFrameManager : MonoBehaviour
 
         m_pCoordinateMapper.MapDepthFrameToColorSpaceUsingIntPtr(
           pDepthData.AddrOfPinnedObject(), pDepthBuffer.Length * sizeof(ushort),
-          pColorData.AddrOfPinnedObject(),(uint)m_pColorSpacePoints.Length);
+          pColorData.AddrOfPinnedObject(), (uint)m_pColorSpacePoints.Length);
+
+        m_pDepth.LoadRawTextureData(pDepthData.AddrOfPinnedObject(), pDepthBuffer.Length * sizeof(ushort));
+        m_pDepth.Apply();
 
         pColorData.Free();
         pDepthCoordinatesData.Free();
@@ -151,15 +176,10 @@ public class KinectFrameManager : MonoBehaviour
         {
             m_pDepthCoordinates = null;
         }
-        if (m_pDepthFrameReader != null)
+        if (m_pMultiSourceFrameReader != null)
         {
-            m_pDepthFrameReader.Dispose();
-            m_pDepthFrameReader = null;
-        }
-        if (m_pColorFrameReader != null)
-        {
-            m_pColorFrameReader.Dispose();
-            m_pColorFrameReader = null;
+            m_pMultiSourceFrameReader.Dispose();
+            m_pMultiSourceFrameReader = null;
         }
         if (m_pKinectSensor != null)
         {

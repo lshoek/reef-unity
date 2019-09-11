@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class VideoPlane : MonoBehaviour
 {
@@ -20,12 +18,17 @@ public class VideoPlane : MonoBehaviour
         transform.localRotation = Quaternion.Euler(-90.0f, 0, 0) * Quaternion.Euler(0, 180.0f, 0);
         transform.localPosition = new Vector3(0, 0, m_camera.farClipPlane + depth);
 
-        float height = 2f * m_camera.orthographicSize;
-        float width = height * m_camera.aspect;
-        transform.localScale = new Vector3(width / m_camera.orthographicSize, 1.0f, height / m_camera.orthographicSize);
+        transform.localScale = new Vector3(ReefHelper.DisplayWidth / m_camera.orthographicSize, 1.0f, ReefHelper.DisplayHeight / m_camera.orthographicSize);
 
         GetComponent<Renderer>().material = Resources.Load("Materials/VideoPlaneMaterial") as Material;
         PlaneMaterial = GetComponent<Renderer>().material;
+    }
+
+    public void SetWidth(float width)
+    {
+        Vector3 newScale = transform.localScale;
+        newScale.x *= (width/ReefHelper.DisplayWidth);
+        transform.localScale = newScale;
     }
 
     public void SetVideoTexture(RenderTexture rt)

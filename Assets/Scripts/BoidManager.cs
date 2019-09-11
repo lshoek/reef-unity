@@ -28,7 +28,7 @@ public class BoidManager : Show
         settings.obstacleMask = 1 << LayerMask.NameToLayer("Bounds") | 1 << LayerMask.NameToLayer("ColliderMesh");
         settings.layer = Layer;
 
-        RT = new RenderTexture(VIDEO_RT_RES, VIDEO_RT_RES, 16, RenderTextureFormat.ARGB32);
+        RT = new RenderTexture(VIDEO_RT_RES, VIDEO_RT_RES, 0, RenderTextureFormat.ARGB32);
         videoPlayer = gameObject.AddComponent<VideoPlayer>();
         videoPlayer.isLooping = true;
         videoPlayer.audioOutputMode = VideoAudioOutputMode.None;

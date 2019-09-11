@@ -9,20 +9,21 @@ public class Scheduler : MonoBehaviour
 
     private CreatureManager creatureManager;
     private BoidManager boidManager;
-    private DepthMeshManager depthMeshManager;
 
     private List<Show> availableShows;
     private Show currentShow;
 
     private Coroutine activeRoutine;
 
-    private bool active = true;
+    public bool Active = true;
 
     void Start()
     {
         availableShows = new List<Show>();
         creatureManager = FindObjectOfType<CreatureManager>();
         boidManager = FindObjectOfType<BoidManager>();
+
+        creatureManager.CurrentBehavior = CreatureManager.Behavior.Static;
 
         StartCoroutine(SchedulerRoutine());
     }
@@ -34,7 +35,7 @@ public class Scheduler : MonoBehaviour
         if (creatureManager != null) availableShows.Add(creatureManager);
         if (boidManager != null) availableShows.Add(boidManager);
 
-        while (active)
+        while (Active)
         {
             currentShow = availableShows[Random.Range(0, availableShows.Count)];
 

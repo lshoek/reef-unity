@@ -19,6 +19,7 @@
 
 #define avg3(i) (i.r + i.g + i.b / 3.0)
 #define avg4(i) (i.r + i.g + i.b + i.a / 4.0)
+#define fxd3(i) fixed3(i, i, i)
 #define fxd4(i) fixed4(i, i, i, i)
 
 #define col3d(i, a) fixed4(i.r, i.g, i.b, a)

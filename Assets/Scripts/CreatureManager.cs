@@ -5,7 +5,10 @@ using UnityEngine.Video;
 using Random = UnityEngine.Random;
 
 public class CreatureManager : Show
-    {
+{
+    public enum Behavior { Wander, Static }
+    public Behavior CurrentBehavior = Behavior.Wander;
+
     public VideoClip[] VideoClips;
 
     public bool VideoCreaturesOnly = true;
@@ -22,6 +25,8 @@ public class CreatureManager : Show
     Texture[] creatureTextures;
     Creature[] creatures;
 
+    Creature alphaCreature;
+
     const int VIDEO_RT_RES = 1024;
 
     float elapsedTime;
@@ -36,7 +41,7 @@ public class CreatureManager : Show
         for (int i = 0; i < VideoClips.Length; i++)
         {
             videoPlayers[i] = gameObject.AddComponent<VideoPlayer>();
-            RT[i] = new RenderTexture(VIDEO_RT_RES, VIDEO_RT_RES, 16, RenderTextureFormat.ARGB32);
+            RT[i] = new RenderTexture(VIDEO_RT_RES, VIDEO_RT_RES, 0, RenderTextureFormat.ARGB32);
 
             videoPlayers[i].isLooping = true;
             videoPlayers[i].audioOutputMode = VideoAudioOutputMode.None;
@@ -54,28 +59,47 @@ public class CreatureManager : Show
             ob.transform.SetParent(Application.Instance.WorldParent);
             creatures[i] = ob.GetComponent<Creature>();
         }
+        alphaCreature = creatures[0];
     }
 
     private void ResetCreatures()
     {
-        for (int i = 0; i < MaxCreatures; i++)
+        if (CurrentBehavior == Behavior.Wander)
         {
-            float height = 2f * Camera.main.orthographicSize;
-            float width = height * Camera.main.aspect;
-            Vector2 pos = new Vector2((i/(float)MaxCreatures*width)-width/2, Random.Range(height / 2, -height / 2));
+            for (int i = 0; i < MaxCreatures; i++)
+            {
+                Vector2 pos = new Vector2((i / (float)MaxCreatures * ReefHelper.DisplayWidth) - ReefHelper.DisplayWidth / 2, 
+                    Random.Range(ReefHelper.DisplayHeight / 2, -ReefHelper.DisplayHeight / 2));
 
-            creatures[i].ColliderActive = false;
-            creatures[i].transform.position = new Vector3(pos.x, pos.y, Layer);
-            creatures[i].SetScale(CreatureScale);
-            creatures[i].TurningSpeed = Random.Range(1.5f, 2.0f);
-            creatures[i].Force = Random.Range(5.0f, 7.0f);
-            creatures[i].Delay = Random.Range(1.0f, 3.0f);
+                creatures[i].ColliderActive = false;
+                creatures[i].transform.position = new Vector3(pos.x, pos.y, Layer);
+                creatures[i].SetScale(CreatureScale);
+                creatures[i].TurningSpeed = Random.Range(0.5f, 1.0f);
+                creatures[i].Force = Random.Range(5.0f, 7.0f);
+                creatures[i].Delay = Random.Range(0.75f, 2.0f);
 
-            if (i < VideoClips.Length) creatures[i].Renderer.material.mainTexture = videoPlayers[i].targetTexture;
-            else if (VideoCreaturesOnly) creatures[i].Renderer.material.mainTexture = videoPlayers[Random.Range(0, videoPlayers.Length)].targetTexture;
-            else creatures[i].Renderer.material.mainTexture = creatureTextures[i - VideoClips.Length];
+                if (i < VideoClips.Length) creatures[i].Renderer.material.mainTexture = videoPlayers[i].targetTexture;
+                else if (VideoCreaturesOnly) creatures[i].Renderer.material.mainTexture = videoPlayers[Random.Range(0, videoPlayers.Length)].targetTexture;
+                else creatures[i].Renderer.material.mainTexture = creatureTextures[i - VideoClips.Length];
+            }
+            StartCoroutine(DelayColliderActivation());
         }
-        StartCoroutine(DelayColliderActivation());
+        else
+        {
+            // display a single creature
+            alphaCreature.SetActive(true);
+            alphaCreature.SetStatic();
+            alphaCreature.transform.position = new Vector3(ReefHelper.DisplayWidth/2, ReefHelper.DisplayHeight/2, Layer);
+            alphaCreature.SetScale(16);
+
+            for (int i = 0; i < MaxCreatures; i++)
+            {
+                if (!creatures[i].Equals(alphaCreature))
+                    creatures[i].SetActive(false);
+
+                creatures[i].ColliderActive = false;
+            }
+        }
     }
 
     private IEnumerator DelayColliderActivation()
@@ -120,6 +144,7 @@ public class CreatureManager : Show
     #region "Overrides"
     public override void Renew()
     {
+        //CurrentBehavior = Random.Range(0, 2) > 0 ? Behavior.Static : Behavior.Wander;
         ResetCreatures();
 
         foreach (VideoPlayer vp in videoPlayers)

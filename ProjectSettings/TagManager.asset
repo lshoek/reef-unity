@@ -14,11 +14,11 @@ TagManager:
   - UI
   - 
   - 
-  - Creatures
-  - Boids
-  - ColliderMesh
   - Bounds
-  - KinectMesh
+  - ColliderMesh
+  - Boids
+  - Creatures
+  - 
   - 
   - 
   - 
