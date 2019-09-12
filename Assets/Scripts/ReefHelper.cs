@@ -9,7 +9,7 @@ public static class ReefHelper
 
     static ReefHelper()
     {
-        m_camera = Camera.main;
+        m_camera = Application.Instance.MainCamera;
 
         DisplayHeight = 2f * m_camera.orthographicSize;
         DisplayWidth = DisplayHeight * m_camera.aspect;

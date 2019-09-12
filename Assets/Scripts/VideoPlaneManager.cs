@@ -38,7 +38,7 @@ public class VideoPlaneManager : MonoBehaviour
             videoFrameBuffer[i] = new RenderTexture(1920, 1080, 0, RenderTextureFormat.BGRA32);
 
             GameObject ob = GameObject.CreatePrimitive(PrimitiveType.Plane);
-            ob.transform.SetParent(Camera.main.transform);
+            ob.transform.SetParent(Application.Instance.MainCamera.transform);
 
             videoPlane[i] = ob.AddComponent<VideoPlane>();
             videoPlane[i].Init(i);

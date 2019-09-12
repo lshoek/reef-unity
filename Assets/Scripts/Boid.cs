@@ -19,10 +19,26 @@ public class Boid : MonoBehaviour
     public Transform InnerTransform { get; set; }
     public Renderer Renderer { get; private set; }
 
+    private BeatInfoManager m_beatInfoManager;
+    public Color TintColor = Color.white;
+
+    private bool isActive = false;
+    public bool IsActive
+    {
+        get { return isActive; }
+        set
+        {
+            if (value) m_beatInfoManager.OnNormalizedAudioLevelInput += (x) => NormalizedAudioLevelInput(x);
+            else m_beatInfoManager.OnNormalizedAudioLevelInput -= (x) => NormalizedAudioLevelInput(x);
+            isActive = value;
+        }
+    }
+
     void Awake()
     {
         Renderer = GetComponentInChildren<Renderer>();
         InnerTransform = GetComponentInChildren<Transform>();
+        m_beatInfoManager = Application.Instance.BeatInfoManager;
     }
 
     void Start()
@@ -34,6 +50,8 @@ public class Boid : MonoBehaviour
 
         float startSpeed = (settings.minSpeed + settings.maxSpeed) / 2;
         velocity = forward * startSpeed;
+
+        m_beatInfoManager.OnNormalizedAudioLevelInput -= (x) => NormalizedAudioLevelInput(x);
     }
 
     public void Init(BoidSettings settings)
@@ -119,6 +137,12 @@ public class Boid : MonoBehaviour
         return new Vector3(vec2d.x, vec2d.y, settings.layer);
     }
 
+    private void NormalizedAudioLevelInput(float level)
+    {
+        Renderer.material.SetFloat("_TintPct", level);
+        Renderer.material.SetColor("_Tint", TintColor);
+    }
+
     public IEnumerator FadeOut(float duration)
     {
         float time = 0;
@@ -145,10 +169,10 @@ public class Boid : MonoBehaviour
 
     void OnDrawGizmos()
     {
-        Gizmos.DrawWireSphere(To3D(position), settings.boundsRadius);
+        //Gizmos.DrawWireSphere(To3D(position), settings.boundsRadius);
 
-        Gizmos.color = Color.red;
-        Gizmos.DrawLine(To3D(position), To3D(position + forward));
+        //Gizmos.color = Color.red;
+        //Gizmos.DrawLine(To3D(position), To3D(position + forward));
 
         //Vector2[] rayDirections = BoidHelper.directions;
         //for (int i = 0; i < rayDirections.Length; i++)

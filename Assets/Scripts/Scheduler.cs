@@ -5,7 +5,8 @@ using UnityEngine;
 public class Scheduler : MonoBehaviour
 {
     public float InitialDelay = 1f;
-    public float timeBetweenActions = 10f;
+    public float ShowDuration = 30f;
+    public float TimeBetweenShows = 10f;
 
     private CreatureManager creatureManager;
     private BoidManager boidManager;
@@ -20,10 +21,8 @@ public class Scheduler : MonoBehaviour
     void Start()
     {
         availableShows = new List<Show>();
-        creatureManager = FindObjectOfType<CreatureManager>();
-        boidManager = FindObjectOfType<BoidManager>();
-
-        creatureManager.CurrentBehavior = Creature.CreatureBehavior.Reactive;
+        creatureManager = Application.Instance.CreatureManager;
+        boidManager = Application.Instance.BoidManager;
 
         StartCoroutine(SchedulerRoutine());
     }
@@ -40,12 +39,12 @@ public class Scheduler : MonoBehaviour
             currentShow = availableShows[Random.Range(0, availableShows.Count)];
 
             currentShow.Renew();
-            yield return new WaitForSeconds(timeBetweenActions);
+            yield return new WaitForSeconds(ShowDuration);
 
             currentShow.Cancel();
             yield return new WaitUntil(() => !currentShow.Active);
 
-            yield return new WaitForSeconds(timeBetweenActions);
+            yield return new WaitForSeconds(TimeBetweenShows);
         }
     }
 }

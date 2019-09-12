@@ -20,10 +20,14 @@ public class BoidManager : Show
     public VideoClip temporaryClip;
     private RenderTexture RT;
 
+    private KinectDepthManager m_depthManager;
+
     private const int VIDEO_RT_RES = 128;
 
     void Start()
     {
+        m_depthManager = Application.Instance.KinectDepthManager;
+
         settings = new BoidSettings();
         settings.obstacleMask = 1 << LayerMask.NameToLayer("Bounds") | 1 << LayerMask.NameToLayer("ColliderMesh");
         settings.layer = Layer;
@@ -53,7 +57,7 @@ public class BoidManager : Show
     {
         for (int i = 0; i < NumBoids; i++)
         {
-            Vector2 pos = Random.insideUnitCircle * Camera.main.orthographicSize * Random.Range(0, 1.5f);
+            Vector2 pos = Random.insideUnitCircle * Application.Instance.MainCamera.orthographicSize * Random.Range(0, 1.5f);
             Vector2 forward = Random.insideUnitCircle;
 
             boids[i].transform.position = new Vector3(pos.x, pos.y, Layer);
@@ -108,6 +112,9 @@ public class BoidManager : Show
             StartCoroutine(b.FadeOut(FadeOutDuration));
 
         yield return new WaitForSeconds(FadeOutDuration);
+        foreach (Boid b in boids)
+            b.IsActive = false;
+
         callback();
     }
 
@@ -117,6 +124,7 @@ public class BoidManager : Show
         ResetBoids();
         foreach (Boid b in boids)
         {
+            b.IsActive = true;
             StartCoroutine(b.FadeIn(1f));
         }
         base.Renew();

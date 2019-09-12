@@ -5,33 +5,33 @@ using UnityEngine;
 public class Creature : MonoBehaviour
 {
     private CreatureManager m_manager;
+    private BeatInfoManager m_beatInfoManager;
 
     public Renderer Renderer { get; private set; }
     public SphereCollider Collider { get; private set; }
-
-    private AudioLevelTracker audioLevelTracker;
 
     public enum CreatureBehavior { Static, Reactive };
     private CreatureBehavior _currentBehavior;
 
     public bool ColliderActive { get; set; }
+    public bool IsActive = false;
+    public bool AudioSensitive = false;
 
-    public bool IsActive = true;
-    public bool AudioReactive = false;
-    public float TurningSpeed = 2.0f;
-    public float Delay = 2.0f;
-    public float Force = 5.0f;
-    public float TargetProximity = 5.0f;
+    public Color TintColor = Color.white;
+    public float TurningSpeed = 1f;
+    public float Delay = 2f;
+    public float Force = 5f;
+    public float NoiseMult = 8f;
+
+    private float defaultAudioReactiveForce = 4f;
+    private float targetProximity = 8f;
+    private float originalRadius;
 
     private Vector2 position;
     private Vector2 forward;
 
     private Vector2 targetDir;
     private Vector2 targetLocation;
-
-    public float AudioLevel = 0;
-    private float lastPeak;
-    private float originalRadius;
 
     /// <summary>
     /// Whether the creature is moving about aimlessly.
@@ -58,23 +58,31 @@ public class Creature : MonoBehaviour
 
     void Start()
     {
+        m_beatInfoManager = Application.Instance.BeatInfoManager;
+
         position = transform.position;
         forward = (position + Random.insideUnitCircle).normalized;
 
-        audioLevelTracker = FindObjectOfType<AudioLevelTracker>();
-
         CurrentBehavior = CreatureBehavior.Static;
         ResetTargetLocation();
-        Renderer.material.SetFloat("_Alpha", 0);
+    }
+
+    public void Init(CreatureManager manager)
+    {
+        m_manager = manager;
     }
 
     void Update()
     {
-        if (CurrentBehavior == CreatureBehavior.Static) return;
+        if (CurrentBehavior == CreatureBehavior.Static)
+        {
+            float angle = Perlin.Noise(Time.time/2) * NoiseMult;
+            transform.localRotation = Quaternion.Euler(0, 0, angle - 180f);
+        }
         if (CurrentBehavior == CreatureBehavior.Reactive)
         {
             position = transform.position;
-            if (Vector2.Distance(position, targetLocation) < TargetProximity)
+            if (Vector2.Distance(position, targetLocation) < targetProximity)
             {
                 if (isWandering) ResetTargetLocation();
                 else taskFinished = true; // the creature has reached its final destination
@@ -95,22 +103,30 @@ public class Creature : MonoBehaviour
         }
     }
 
-    public void SetFree()
+    public void StartMovement()
     {
-        isWandering = true;
-        taskFinished = false;
-        ResetTargetLocation();
-
-        if (AudioReactive)
-            m_manager.OnAudioBeat += () => Impulse(); 
+        if (CurrentBehavior == CreatureBehavior.Reactive)
+        {
+            isWandering = true;
+            taskFinished = false;
+            ResetTargetLocation();
+        }
+        if (AudioSensitive)
+        {
+            m_beatInfoManager.OnAudioBeat += () => Impulse();
+            m_beatInfoManager.OnNormalizedAudioLevelInput += (x) => NormalizedAudioLevelInput(x);
+        }
         else
             StartCoroutine(PeriodicImpulse(Delay));
     }
 
     public void Escape()
     {
-        targetLocation = Random.insideUnitCircle.normalized * Camera.main.orthographicSize * 3f;
-        isWandering = false;
+        if (CurrentBehavior == CreatureBehavior.Reactive)
+        {
+            targetLocation = Random.insideUnitCircle.normalized * Application.Instance.MainCamera.orthographicSize * 3f;
+            isWandering = false;
+        }
     }
 
     private void ResetTargetLocation()
@@ -127,7 +143,7 @@ public class Creature : MonoBehaviour
     private IEnumerator PeriodicImpulse(float period)
     {
         // force varying movement offsets
-        yield return new WaitForSeconds(Random.Range(0.5f, 2.0f));
+        yield return new WaitForSeconds(Random.Range(0.5f, 2f));
 
         while (!taskFinished)
         {
@@ -136,11 +152,17 @@ public class Creature : MonoBehaviour
         }
     }
 
+    private void NormalizedAudioLevelInput(float level)
+    {
+        Renderer.material.SetFloat("_TintPct", level);
+        Renderer.material.SetColor("_Tint", TintColor);
+    }
+
     private void Impulse()
     {
-        if (ColliderActive)
+        if (ColliderActive && CurrentBehavior == CreatureBehavior.Reactive)
         {
-            Collider.attachedRigidbody.AddForce(forward * Force, ForceMode.Impulse);
+            Collider.attachedRigidbody.AddForce(forward * (AudioSensitive ? defaultAudioReactiveForce : Force), ForceMode.Impulse);
         }
     }
 
@@ -154,6 +176,7 @@ public class Creature : MonoBehaviour
             yield return null;
         }
         Renderer.material.SetFloat("_Alpha", 0f);
+        SetActive(false);
     }
 
     public IEnumerator FadeIn(float duration)
@@ -172,22 +195,23 @@ public class Creature : MonoBehaviour
     {
         IsActive = active;
         Renderer.enabled = active;
-    }
 
-    public void SetManager(CreatureManager manager)
-    {
-        m_manager = manager;
+        if (!active)
+        {
+            m_beatInfoManager.OnAudioBeat -= () => Impulse();
+            m_beatInfoManager.OnNormalizedAudioLevelInput -= (x) => NormalizedAudioLevelInput(x);
+        }
     }
 
     void OnDrawGizmos()
     {
         Gizmos.color = Color.red;
-        Gizmos.DrawLine(transform.position, position + forward * 5.0f);
+        Gizmos.DrawLine(transform.position, position + forward.normalized * 2.0f);
 
         Gizmos.color = Color.white;
-        Gizmos.DrawLine(transform.position, position + targetDir * 5.0f);
+        Gizmos.DrawLine(transform.position, position + targetDir.normalized * 2.0f);
 
-        Gizmos.color = Color.green;
-        Gizmos.DrawWireSphere(targetLocation, 0.25f);
+        //Gizmos.color = Color.green;
+        //Gizmos.DrawWireSphere(targetLocation, 0.25f);
     }
 }

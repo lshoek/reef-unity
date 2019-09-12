@@ -7,7 +7,6 @@ using Random = UnityEngine.Random;
 public class CreatureManager : Show
 {
     public Creature.CreatureBehavior CurrentBehavior;
-
     public VideoClip[] VideoClips;
 
     public bool VideoCreaturesOnly = true;
@@ -18,22 +17,22 @@ public class CreatureManager : Show
     public float EscapeDuration = 10f;
     public float FadeOutDuration = 10f;
 
-    VideoPlayer[] videoPlayers;
-    RenderTexture[] RT;
+    public Color TintColor = Color.white;
 
-    Texture[] creatureTextures;
-    Creature[] creatures;
+    private VideoPlayer[] videoPlayers;
+    private RenderTexture[] RT;
 
-    Creature alphaCreature;
+    private Texture[] creatureTextures;
+    private Creature[] creatures;
 
-    const int VIDEO_RT_RES = 1024;
+    private Creature alphaCreature;
 
-    float elapsedTime;
-    float lastSpawned;
+    private const int VIDEO_RT_RES = 1024;
 
-    float lastPeak = 0;
-    bool beatToggle = true;
-    public event Action OnAudioBeat;
+    private float elapsedTime;
+    private float lastSpawned;
+    private float lastPeak;
+    private bool beatToggle = true;
 
     void Start()
     {
@@ -61,7 +60,7 @@ public class CreatureManager : Show
             ob.name = $"Creature{i}";
             ob.transform.SetParent(Application.Instance.WorldParent);
             creatures[i] = ob.GetComponent<Creature>();
-            creatures[i].SetManager(this);
+            creatures[i].Init(this);
         }
         alphaCreature = creatures[0];
     }
@@ -72,53 +71,43 @@ public class CreatureManager : Show
         {
             for (int i = 0; i < MaxCreatures; i++)
             {
-                Vector2 pos = new Vector2((i / (float)MaxCreatures * ReefHelper.DisplayWidth) - ReefHelper.DisplayWidth / 2, 
+                Vector2 pos = new Vector2((i / (float)MaxCreatures * ReefHelper.DisplayWidth) - ReefHelper.DisplayWidth / 2,
                     Random.Range(ReefHelper.DisplayHeight / 2, -ReefHelper.DisplayHeight / 2));
 
+                creatures[i].SetActive(true);
                 creatures[i].CurrentBehavior = Creature.CreatureBehavior.Reactive;
-                creatures[i].AudioReactive = true;
+                creatures[i].AudioSensitive = true;
                 creatures[i].ColliderActive = false;
                 creatures[i].transform.position = new Vector3(pos.x, pos.y, Layer);
                 creatures[i].SetScale(CreatureScale);
-                creatures[i].TurningSpeed = Random.Range(0.25f, 0.75f);
-                creatures[i].Force = Random.Range(5.0f, 7.0f);
-                creatures[i].Delay = Random.Range(0.75f, 2.0f);
 
-                if (i < VideoClips.Length) creatures[i].Renderer.material.mainTexture = videoPlayers[i].targetTexture;
-                else if (VideoCreaturesOnly) creatures[i].Renderer.material.mainTexture = videoPlayers[Random.Range(0, videoPlayers.Length)].targetTexture;
-                else creatures[i].Renderer.material.mainTexture = creatureTextures[i - VideoClips.Length];
-
-                creatures[i].SetFree();
+                creatures[i].TurningSpeed = Random.Range(0.25f, 1f);
+                creatures[i].Force = Random.Range(3f, 5f);
+                creatures[i].Delay = Random.Range(0.75f, 2f);
             }
-            StartCoroutine(DelayColliderActivation());
         }
         else if (CurrentBehavior == Creature.CreatureBehavior.Static)
         {
-            // display a single creature
-            alphaCreature.transform.position = new Vector3(ReefHelper.DisplayWidth/2, ReefHelper.DisplayHeight/2, Layer);
-            alphaCreature.SetScale(16);
-
             for (int i = 0; i < MaxCreatures; i++)
             {
                 creatures[i].SetActive(creatures[i].Equals(alphaCreature));
                 creatures[i].CurrentBehavior = Creature.CreatureBehavior.Static;
+                creatures[i].AudioSensitive = true;
                 creatures[i].ColliderActive = false;
             }
+            // display a single creature
+            alphaCreature.Collider.attachedRigidbody.isKinematic = true;
+            alphaCreature.transform.position = new Vector3(0, 0, Layer);
+            alphaCreature.SetScale(2f);
         }
-    }
+        StartCoroutine(DelayColliderActivation());
 
-    public void NormalizedLevelInput(float level)
-    {
-        // max 200bpm
-        if (Time.time > lastPeak + 0.25f)
+        // reset textures and start movement
+        for (int i = 0; i < MaxCreatures; i++)
         {
-            if (level > 0.9f)
-            {
-                if (beatToggle) OnAudioBeat?.Invoke();
-                beatToggle = !beatToggle;
-
-                lastPeak = Time.time;
-            }
+            if (i < VideoClips.Length) creatures[i].Renderer.material.mainTexture = videoPlayers[i].targetTexture;
+            else if (VideoCreaturesOnly) creatures[i].Renderer.material.mainTexture = videoPlayers[Random.Range(0, videoPlayers.Length)].targetTexture;
+            else creatures[i].Renderer.material.mainTexture = creatureTextures[i - VideoClips.Length];
         }
     }
 
@@ -151,6 +140,7 @@ public class CreatureManager : Show
 
         // stop video
         foreach (VideoPlayer vp in videoPlayers) vp.Stop();
+        alphaCreature.Collider.attachedRigidbody.isKinematic = false;
 
         // mark as canceled
         callback();
@@ -159,7 +149,7 @@ public class CreatureManager : Show
     #region "Overrides"
     public override void Renew()
     {
-        //CurrentBehavior = Random.Range(0, 2) > 0 ? Creature.CreatureBehavior.Static : Creature.CreatureBehavior.Reactive;
+        CurrentBehavior = Random.Range(0, 2) > 0 ? Creature.CreatureBehavior.Static : Creature.CreatureBehavior.Reactive;
         ResetCreatures();
 
         foreach (VideoPlayer vp in videoPlayers)
@@ -168,6 +158,7 @@ public class CreatureManager : Show
         foreach (Creature c in creatures)
         {
             StartCoroutine(c.FadeIn(1f));
+            c.StartMovement();
         }
         base.Renew();
     }

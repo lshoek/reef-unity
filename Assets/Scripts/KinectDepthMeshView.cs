@@ -15,8 +15,8 @@ public class KinectDepthMeshView : MonoBehaviour
 
     void Start()
     {
-        m_frameManager = FindObjectOfType<KinectFrameManager>();
-        m_camera = Camera.main;
+        m_frameManager = Application.Instance.KinectFrameManager;
+        m_camera = Application.Instance.MainCamera;
 
         kinectMeshCollider = GetComponent<MeshCollider>();
         kinectMeshFilter = GetComponent<MeshFilter>();

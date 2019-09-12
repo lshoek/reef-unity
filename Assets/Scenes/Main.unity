@@ -192,7 +192,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: b7b5518e5d412f343858226a74aea979, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -15
+      value: -13.5
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: b7b5518e5d412f343858226a74aea979, type: 3}
       propertyPath: m_LocalPosition.z
@@ -303,6 +303,7 @@ Transform:
   m_Children:
   - {fileID: 1923552539}
   - {fileID: 244442909}
+  - {fileID: 1964507229}
   - {fileID: 2067985256}
   - {fileID: 634230300}
   - {fileID: 702298822}
@@ -410,8 +411,9 @@ GameObject:
   m_Component:
   - component: {fileID: 634230300}
   - component: {fileID: 634230301}
+  - component: {fileID: 634230302}
   m_Layer: 0
-  m_Name: AudioLevelTracker
+  m_Name: BeatInfoManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -429,7 +431,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 398979165}
-  m_RootOrder: 3
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &634230301
 MonoBehaviour:
@@ -452,7 +454,7 @@ MonoBehaviour:
   _normalizedLevelEvent:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 2016452569}
+      - m_Target: {fileID: 634230302}
         m_MethodName: NormalizedLevelInput
         m_Mode: 0
         m_Arguments:
@@ -464,6 +466,19 @@ MonoBehaviour:
           m_BoolArgument: 0
         m_CallState: 2
     m_TypeName: Lasp.AudioLevelEvent, Lasp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+--- !u!114 &634230302
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 634230299}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f7614993d5c739c44a5438341a865b68, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  NormalizedAudioPeakThreshold: 0.75
 --- !u!1 &674579074
 GameObject:
   m_ObjectHideFlags: 0
@@ -529,7 +544,7 @@ Transform:
   - {fileID: 2016452568}
   - {fileID: 1758415714}
   m_Father: {fileID: 398979165}
-  m_RootOrder: 4
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &702298823
 MonoBehaviour:
@@ -544,7 +559,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   InitialDelay: 1
-  timeBetweenActions: 10
+  ShowDuration: 10
+  TimeBetweenShows: 1
   Active: 1
 --- !u!1 &979370221
 GameObject:
@@ -820,7 +836,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: b7b5518e5d412f343858226a74aea979, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 25
+      value: 21.5
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: b7b5518e5d412f343858226a74aea979, type: 3}
       propertyPath: m_LocalPosition.y
@@ -923,7 +939,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: b7b5518e5d412f343858226a74aea979, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -25
+      value: -21.5
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: b7b5518e5d412f343858226a74aea979, type: 3}
       propertyPath: m_LocalPosition.y
@@ -1074,7 +1090,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: b7b5518e5d412f343858226a74aea979, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 15
+      value: 13.5
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: b7b5518e5d412f343858226a74aea979, type: 3}
       propertyPath: m_LocalPosition.z
@@ -1175,7 +1191,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1758415714
 Transform:
   m_ObjectHideFlags: 0
@@ -1202,7 +1218,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc9eeef0ab75eb64fa7472351d11e0ac, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  NumBoids: 64
+  NumBoids: 256
   Layer: 2
   FadeOutDuration: 5
   temporaryClip: {fileID: 32900000, guid: ca939a1bf88470f4aa89b8fd4c498563, type: 3}
@@ -1380,6 +1396,36 @@ Transform:
   m_Father: {fileID: 674579075}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1964507228
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1964507229}
+  m_Layer: 0
+  m_Name: KinectDepthManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1964507229
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1964507228}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 398979165}
+  m_RootOrder: 2
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2016452567
 GameObject:
   m_ObjectHideFlags: 0
@@ -1432,6 +1478,7 @@ MonoBehaviour:
   Layer: 1
   EscapeDuration: 10
   FadeOutDuration: 10
+  TintColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1 &2067985255
 GameObject:
   m_ObjectHideFlags: 0
@@ -1461,7 +1508,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 398979165}
-  m_RootOrder: 2
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &2067985257
 MonoBehaviour:

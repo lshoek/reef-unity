@@ -26,10 +26,10 @@ public class KinectDepthColorView : MonoBehaviour
 
     void Start()
     {
-        m_frameManager = FindObjectOfType<KinectFrameManager>();
+        m_frameManager = Application.Instance.KinectFrameManager;
         m_pRenderer = GetComponent<Renderer>();
         m_pMeshFilter = GetComponent<MeshFilter>();
-        m_camera = Camera.main;
+        m_camera = Application.Instance.MainCamera;
 
         m_pTextureMixMaterial = new Material(Resources.Load("Shaders/KinectDepthColorMixer") as Shader);
         m_pKinectDepthColorRT = new RenderTexture(m_frameManager.DepthFrameWidth, m_frameManager.DepthFrameHeight, 0, RenderTextureFormat.ARGB32);
@@ -37,7 +37,7 @@ public class KinectDepthColorView : MonoBehaviour
         m_pColorToDepth = new Vector2[m_frameManager.DepthFrameWidth/ m_pColorDownsampleSize * m_frameManager.DepthFrameHeight/ m_pColorDownsampleSize];
 
         GameObject ob = GameObject.CreatePrimitive(PrimitiveType.Plane);
-        ob.transform.SetParent(Camera.main.transform);
+        ob.transform.SetParent(m_camera.transform);
 
         float depthAspect = m_frameManager.DepthWidthDownsampled / m_frameManager.DepthHeightDownsampled;
 
