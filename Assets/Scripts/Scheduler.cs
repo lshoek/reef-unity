@@ -23,7 +23,7 @@ public class Scheduler : MonoBehaviour
         creatureManager = FindObjectOfType<CreatureManager>();
         boidManager = FindObjectOfType<BoidManager>();
 
-        creatureManager.CurrentBehavior = CreatureManager.Behavior.Static;
+        creatureManager.CurrentBehavior = Creature.CreatureBehavior.Reactive;
 
         StartCoroutine(SchedulerRoutine());
     }

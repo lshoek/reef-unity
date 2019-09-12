@@ -1,18 +1,23 @@
-﻿
+﻿using Lasp;
 using System.Collections;
 using UnityEngine;
 
 public class Creature : MonoBehaviour
 {
+    private CreatureManager m_manager;
+
     public Renderer Renderer { get; private set; }
     public SphereCollider Collider { get; private set; }
 
-    public enum CreatureBehavior { Free, Tasked, Static };
-    public CreatureBehavior CurrentBehavior { get; private set; }
+    private AudioLevelTracker audioLevelTracker;
+
+    public enum CreatureBehavior { Static, Reactive };
+    private CreatureBehavior _currentBehavior;
 
     public bool ColliderActive { get; set; }
 
     public bool IsActive = true;
+    public bool AudioReactive = false;
     public float TurningSpeed = 2.0f;
     public float Delay = 2.0f;
     public float Force = 5.0f;
@@ -24,8 +29,25 @@ public class Creature : MonoBehaviour
     private Vector2 targetDir;
     private Vector2 targetLocation;
 
+    public float AudioLevel = 0;
+    private float lastPeak;
     private float originalRadius;
+
+    /// <summary>
+    /// Whether the creature is moving about aimlessly.
+    /// </summary>
+    private bool isWandering = false;
+
+    /// <summary>
+    /// Whether the creature has fulfilled its duties and escaped.
+    /// </summary>
     private bool taskFinished = false;
+
+    public CreatureBehavior CurrentBehavior
+    {
+        get { return _currentBehavior; }
+        set { _currentBehavior = value; }
+    }
 
     void Awake()
     {
@@ -39,7 +61,9 @@ public class Creature : MonoBehaviour
         position = transform.position;
         forward = (position + Random.insideUnitCircle).normalized;
 
-        CurrentBehavior = CreatureBehavior.Free;
+        audioLevelTracker = FindObjectOfType<AudioLevelTracker>();
+
+        CurrentBehavior = CreatureBehavior.Static;
         ResetTargetLocation();
         Renderer.material.SetFloat("_Alpha", 0);
     }
@@ -47,55 +71,51 @@ public class Creature : MonoBehaviour
     void Update()
     {
         if (CurrentBehavior == CreatureBehavior.Static) return;
-
-        position = transform.position;
-        if (Vector2.Distance(position, targetLocation) < TargetProximity)
+        if (CurrentBehavior == CreatureBehavior.Reactive)
         {
-            if (CurrentBehavior == CreatureBehavior.Free) ResetTargetLocation();
-            else if (CurrentBehavior == CreatureBehavior.Tasked)
+            position = transform.position;
+            if (Vector2.Distance(position, targetLocation) < TargetProximity)
             {
-                taskFinished = true;
-            };
-        }
-        if (!taskFinished)
-        {
-            targetDir = (targetLocation - position).normalized;
-
-            float sa = Vector2.SignedAngle(forward, targetDir);
-            if (Mathf.Abs(sa) > TurningSpeed)
-            {
-                float turn = TurningSpeed * (Mathf.Clamp(sa, -45f, 45f) / 45f);
-                forward = Quaternion.Euler(0, 0, turn) * forward;
+                if (isWandering) ResetTargetLocation();
+                else taskFinished = true; // the creature has reached its final destination
             }
-            float angle = Mathf.Atan2(forward.y, forward.x) * Mathf.Rad2Deg;
-            transform.localRotation = Quaternion.Euler(0, 0, angle - 180f);
+            if (!taskFinished)
+            {
+                targetDir = (targetLocation - position).normalized;
+
+                float sa = Vector2.SignedAngle(forward, targetDir);
+                if (Mathf.Abs(sa) > TurningSpeed)
+                {
+                    float turn = TurningSpeed * (Mathf.Clamp(sa, -45f, 45f) / 45f);
+                    forward = Quaternion.Euler(0, 0, turn) * forward;
+                }
+                float angle = Mathf.Atan2(forward.y, forward.x) * Mathf.Rad2Deg;
+                transform.localRotation = Quaternion.Euler(0, 0, angle - 180f);
+            }
         }
-    }
-
-    public void SetStatic()
-    {
-        CurrentBehavior = CreatureBehavior.Static;
-    }
-
-    public void SetTargetLocation(Vector2 target)
-    {
-        targetLocation = target;
-        CurrentBehavior = CreatureBehavior.Tasked;
     }
 
     public void SetFree()
     {
-        ResetTargetLocation();
-        StartCoroutine(PeriodicImpulse(Delay));
+        isWandering = true;
         taskFinished = false;
-        CurrentBehavior = CreatureBehavior.Free;
+        ResetTargetLocation();
+
+        if (AudioReactive)
+            m_manager.OnAudioBeat += () => Impulse(); 
+        else
+            StartCoroutine(PeriodicImpulse(Delay));
+    }
+
+    public void Escape()
+    {
+        targetLocation = Random.insideUnitCircle.normalized * Camera.main.orthographicSize * 3f;
+        isWandering = false;
     }
 
     private void ResetTargetLocation()
     {
-        float height = 2f * Camera.main.orthographicSize;
-        float width = height * Camera.main.aspect;
-        targetLocation = new Vector2(Random.Range(-width / 2, width / 2), Random.Range(height / 2, -height / 2));
+        targetLocation = new Vector2(Random.Range(-ReefHelper.DisplayWidth / 2, ReefHelper.DisplayWidth / 2), Random.Range(ReefHelper.DisplayHeight / 2, -ReefHelper.DisplayHeight / 2));
     }
 
     public void SetScale(float scale)
@@ -111,11 +131,16 @@ public class Creature : MonoBehaviour
 
         while (!taskFinished)
         {
-            if (ColliderActive)
-            {
-                Collider.attachedRigidbody.AddForce(forward * Force, ForceMode.Impulse);
-            }
+            Impulse();
             yield return new WaitForSeconds(period);
+        }
+    }
+
+    private void Impulse()
+    {
+        if (ColliderActive)
+        {
+            Collider.attachedRigidbody.AddForce(forward * Force, ForceMode.Impulse);
         }
     }
 
@@ -147,6 +172,11 @@ public class Creature : MonoBehaviour
     {
         IsActive = active;
         Renderer.enabled = active;
+    }
+
+    public void SetManager(CreatureManager manager)
+    {
+        m_manager = manager;
     }
 
     void OnDrawGizmos()
