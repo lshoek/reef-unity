@@ -27,13 +27,13 @@ public class VideoPlane : MonoBehaviour
     public void SetWidth(float width)
     {
         Vector3 newScale = transform.localScale;
-        newScale.x *= (width/ReefHelper.DisplayWidth);
+        newScale.x *= width/ReefHelper.DisplayWidth;
         transform.localScale = newScale;
     }
 
-    public void SetVideoTexture(RenderTexture rt)
+    public void SetVideoTexture(Texture tex)
     {
-        PlaneMaterial.mainTexture = rt;
+        PlaneMaterial.mainTexture = tex;
     }
 
     void Update()

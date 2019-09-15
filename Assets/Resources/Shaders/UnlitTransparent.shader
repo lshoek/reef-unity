@@ -4,7 +4,7 @@ Shader "Custom/UnlitTransparent"
 	{
 		_MainTex ("Base (RGB) Trans (A)", 2D) = "black" {}
 		_Alpha ("Alpha", Float) = 1.0
-		_Tint ("TintColor", Color) = (0,0,0,0)
+		_Tint ("TintColor", Color) = (1,1,1,1)
 		_TintPct ("TintPct", Float) = 0
 	}
 
@@ -12,7 +12,6 @@ Shader "Custom/UnlitTransparent"
 	{
 
 		Tags {"Queue"="Transparent" "IgnoreProjector"="True" "RenderType"="Transparent"}
-		LOD 100
 
 		ZWrite Off
 		Blend SrcAlpha OneMinusSrcAlpha 

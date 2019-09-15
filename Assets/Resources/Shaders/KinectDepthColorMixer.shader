@@ -9,6 +9,7 @@ Properties
 	_DepthMax ("DepthMax", Float) = 0
 	_DepthMinRamp ("DepthMinRamp", Float) = 0
 	_DepthMaxRamp ("DepthMaxRamp", Float) = 0
+	_Alpha ("Alpha", Float) = 0
 }
 SubShader {
 Pass {
@@ -44,6 +45,7 @@ float _DepthMin;
 float _DepthMax;
 float _DepthMinRamp;
 float _DepthMaxRamp;
+float _Alpha;
 
 StructuredBuffer<float2> DepthCoords;
 
@@ -66,12 +68,15 @@ fixed4 frag (v2f i, in uint id : SV_InstanceID) : COLOR
 {
 	float time = _Time.y;
 	float2 uv = i.uv.xy;
+	float2 uv_ex = i.uv.xy;
 	fixed4 col;
 
 	float x = uv.x * 25.0 + time;
 	float y = uv.y * 25.0 + time;
 	uv.y += cos(x+y) * 0.0090 * cos(y);
 	uv.x += sin(x-y) * 0.0090 * sin(y);
+	uv_ex.y += cos(x+y) * 0.025 * cos(y);
+	uv_ex.x += sin(x-y) * 0.025 * sin(y);
 
 	int col_w = (int)(uv.x * ((float)512/_DownsampleSize));
 	int col_h = (int)(uv.y * ((float)424/_DownsampleSize));
@@ -85,8 +90,11 @@ fixed4 frag (v2f i, in uint id : SV_InstanceID) : COLOR
 	float map_max = smoothstep(0, 1.0, clamp(map(depth, _DepthMax-_DepthMaxRamp, _DepthMax, 1.0, 0), 0, 1.0));
 	float pct = max(map_min, map_max);
 
+	float lb_min = smoothstep(0, 1.0, clamp(map(uv_ex.x, 0, 0.2, 0, 1.0), 0, 1.0));
+	float lb_max = smoothstep(0, 1.0, clamp(map(uv_ex.x, 0.8, 1.0, 1.0, 0), 0, 1.0));
+
 	col.rgb = _AmbientColor.rgb * gray;
-	col.a = inv(smoothstep(0, 1.0, pct));
+	col.a = inv(smoothstep(0, 1.0, pct)) * min(lb_min,lb_max) * _Alpha;
 
 	return col;
 }

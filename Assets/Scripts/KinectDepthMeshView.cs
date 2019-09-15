@@ -1,69 +1,43 @@
 ﻿using UnityEngine;
-using Windows.Kinect;
 
 public class KinectDepthMeshView : MonoBehaviour
 {
+    KinectDepthManager m_depthManager;
     KinectFrameManager m_frameManager;
-    Camera m_camera;
 
-    [SerializeField] float depthRescale = 100f;
-    private int maxDepth;
+    DepthMesh m_depthMesh;
+    MeshCollider m_meshCollider;
 
-    private DepthMesh kinectDepthMesh;
-    private MeshCollider kinectMeshCollider;
-    private MeshFilter kinectMeshFilter;
+    public bool IsActive { get; private set; } = false;
 
     void Start()
     {
+        m_depthManager = Application.Instance.KinectDepthManager;
         m_frameManager = Application.Instance.KinectFrameManager;
-        m_camera = Application.Instance.MainCamera;
 
-        kinectMeshCollider = GetComponent<MeshCollider>();
-        kinectMeshFilter = GetComponent<MeshFilter>();
-
-        // downsample to lower resolution
-        kinectDepthMesh = new DepthMesh(m_frameManager.DepthWidthDownsampled, m_frameManager.DepthHeightDownsampled);
+        m_meshCollider = GetComponent<MeshCollider>();
 
         float depthAspect = m_frameManager.DepthWidthDownsampled / m_frameManager.DepthHeightDownsampled;
-        transform.parent.localPosition = new Vector3(-ReefHelper.DisplayHeight * depthAspect/2, ReefHelper.DisplayHeight / 2);
+        transform.parent.localPosition = new Vector3(-ReefHelper.DisplayHeight * depthAspect / 2, ReefHelper.DisplayHeight / 2);
 
-        Vector2 meshSize = new Vector2(ReefHelper.DisplayHeight * depthAspect, ReefHelper.DisplayHeight);
-        kinectDepthMesh.SetOffset(new Vector2(0.5f, 0.5f));
-        kinectDepthMesh.Init(meshSize, false);
-
-        maxDepth = m_frameManager.MaxReliableDistance;
+        m_depthManager.OnActivationChanged += (x) => { SetActive(x); };
     }
 
-    private void Update()
+    void Update()
     {
-        ushort[] depthData = m_frameManager.GetDepthData();
-        UpdateDepthMesh(kinectDepthMesh, depthData, depthRescale, m_frameManager.ColliderMeshDownsampling);
-
-        kinectMeshCollider.sharedMesh = kinectDepthMesh.mesh;
-    }
-
-    private void UpdateDepthMesh(DepthMesh depthMesh, ushort[] depthData, float scale, int downSampleSize)
-    {
-        int maxIndex = m_frameManager.MaxDepthSamples;
-        for (int y = 0; y < m_frameManager.DepthFrameHeight; y += downSampleSize)
+        if (IsActive)
         {
-            for (int x = 0; x < m_frameManager.DepthFrameWidth; x += downSampleSize)
-            {
-                int idx = x / downSampleSize;
-                int idy = y / downSampleSize;
-
-                int fullSampleIndex = y * m_frameManager.DepthFrameWidth + x;
-                int downSampleIndex = (idy * (m_frameManager.DepthFrameWidth / downSampleSize)) + idx;
-                downSampleIndex = (downSampleIndex >= maxIndex) ? maxIndex - 1 : downSampleIndex;
-
-                float depth = depthData[fullSampleIndex + downSampleSize / 2];
-                depth = (depth < maxDepth) ? depth : maxDepth;
-                depth = (depth == 0) ? maxDepth : depth;
-                depth = depth / maxDepth * scale;
-
-                depthMesh.verts[downSampleIndex].z = depth;
-            }
+            m_meshCollider.sharedMesh = m_depthMesh.mesh;
         }
-        depthMesh.Apply();
+    }
+
+    private void SetActive(bool active)
+    {
+        IsActive = active;
+
+        if (active)
+            m_depthMesh = m_depthManager.GetDepthMesh();
+        else
+            m_meshCollider.sharedMesh = null;
     }
 }

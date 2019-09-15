@@ -64,6 +64,7 @@ MonoBehaviour:
   centreOfFlockmates: {x: 0, y: 0}
   avgAvoidanceHeading: {x: 0, y: 0}
   numPerceivedFlockmates: 0
+  TintColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1 &8707833609986642692
 GameObject:
   m_ObjectHideFlags: 0
@@ -121,7 +122,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: da9250bc6cedb804f83d22f8b64b8c14, type: 2}
+  - {fileID: 2100000, guid: 652fda3832b32b5479a2d10dfc80487d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -129,6 +130,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0

@@ -3,7 +3,7 @@ using Windows.Kinect;
 
 public class KinectDepthColorView : MonoBehaviour
 {
-    public int Depth = 3;
+    public int Depth = 2;
     public Color AmbientColor = Color.white;
     [Range(0, 0.1f)] public float ShaderDepthMin = 0.0025f;
     [Range(0, 0.1f)] public float ShaderDepthMinRamp = 0.025f;
@@ -13,6 +13,7 @@ public class KinectDepthColorView : MonoBehaviour
     private int m_pColorDownsampleSize = 2;
 
     private KinectFrameManager m_frameManager;
+    private KinectDepthManager m_depthManager;
     private Camera m_camera;
 
     private RenderTexture m_pKinectDepthColorRT;
@@ -27,6 +28,8 @@ public class KinectDepthColorView : MonoBehaviour
     void Start()
     {
         m_frameManager = Application.Instance.KinectFrameManager;
+        m_depthManager = Application.Instance.KinectDepthManager;
+
         m_pRenderer = GetComponent<Renderer>();
         m_pMeshFilter = GetComponent<MeshFilter>();
         m_camera = Application.Instance.MainCamera;
@@ -34,7 +37,7 @@ public class KinectDepthColorView : MonoBehaviour
         m_pTextureMixMaterial = new Material(Resources.Load("Shaders/KinectDepthColorMixer") as Shader);
         m_pKinectDepthColorRT = new RenderTexture(m_frameManager.DepthFrameWidth, m_frameManager.DepthFrameHeight, 0, RenderTextureFormat.ARGB32);
 
-        m_pColorToDepth = new Vector2[m_frameManager.DepthFrameWidth/ m_pColorDownsampleSize * m_frameManager.DepthFrameHeight/ m_pColorDownsampleSize];
+        m_pColorToDepth = new Vector2[m_frameManager.DepthFrameWidth / m_pColorDownsampleSize * m_frameManager.DepthFrameHeight / m_pColorDownsampleSize];
 
         GameObject ob = GameObject.CreatePrimitive(PrimitiveType.Plane);
         ob.transform.SetParent(m_camera.transform);
@@ -43,7 +46,7 @@ public class KinectDepthColorView : MonoBehaviour
 
         m_pKinectVideoPlane = ob.AddComponent<VideoPlane>();
         m_pKinectVideoPlane.Init(Depth);
-        m_pKinectVideoPlane.SetWidth(ReefHelper.DisplayHeight*depthAspect);
+        m_pKinectVideoPlane.SetWidth(ReefHelper.DisplayHeight * depthAspect);
         m_pKinectVideoPlane.SetVideoTexture(m_pKinectDepthColorRT);
 
         m_pTextureMixMaterial.SetTexture("_ColorTex", m_frameManager.GetColorTexture());
@@ -58,6 +61,7 @@ public class KinectDepthColorView : MonoBehaviour
             m_pDepthComputeBuffer = new ComputeBuffer(m_frameManager.GetColorSpacePointBuffer().Length, sizeof(float) * 2);
             m_pTextureMixMaterial.SetBuffer("DepthCoords", m_pDepthComputeBuffer);
         }
+        m_depthManager.OnActivationChanged += (x) => { SetActive(x); };
     }
 
     void Update()
@@ -72,7 +76,7 @@ public class KinectDepthColorView : MonoBehaviour
                 int idy = y / m_pColorDownsampleSize;
 
                 int fullSampleIndex = y * m_frameManager.DepthFrameWidth + x;
-                int downSampleIndex = (idy * (m_frameManager.DepthFrameWidth/ m_pColorDownsampleSize)) + idx;
+                int downSampleIndex = (idy * (m_frameManager.DepthFrameWidth / m_pColorDownsampleSize)) + idx;
 
                 ColorSpacePoint p = colorSpacePoints[fullSampleIndex];
                 Vector2 texcoord = new Vector2();
@@ -99,6 +103,18 @@ public class KinectDepthColorView : MonoBehaviour
     void OnPostRender()
     {
         m_pDepthComputeBuffer.Release();
+    }
+    
+    private void SetActive(bool active)
+    {
+        if (active)
+            StartCoroutine(ReefHelper.FadeNormalized(ReefHelper.FadeType.In, 3f, 
+                (x)=> m_pTextureMixMaterial.SetFloat("_Alpha", x),
+                null));
+        else
+            StartCoroutine(ReefHelper.FadeNormalized(ReefHelper.FadeType.Out, 3f, 
+                (x) => m_pTextureMixMaterial.SetFloat("_Alpha", x),
+                null));
     }
 
     private void ReleaseBuffers()

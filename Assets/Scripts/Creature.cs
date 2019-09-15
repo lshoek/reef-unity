@@ -14,7 +14,6 @@ public class Creature : MonoBehaviour
     private CreatureBehavior _currentBehavior;
 
     public bool ColliderActive { get; set; }
-    public bool IsActive = false;
     public bool AudioSensitive = false;
 
     public Color TintColor = Color.white;
@@ -32,6 +31,19 @@ public class Creature : MonoBehaviour
 
     private Vector2 targetDir;
     private Vector2 targetLocation;
+
+    private bool isActive = false;
+    public bool IsActive
+    {
+        get { return isActive; }
+        set
+        {
+            if (value) m_beatInfoManager.OnNormalizedAudioLevelInput += (x) => NormalizedAudioLevelInput(x);
+            else m_beatInfoManager.OnNormalizedAudioLevelInput -= (x) => NormalizedAudioLevelInput(x);
+            Renderer.enabled = value;
+            isActive = value;
+        }
+    }
 
     /// <summary>
     /// Whether the creature is moving about aimlessly.
@@ -166,50 +178,27 @@ public class Creature : MonoBehaviour
         }
     }
 
-    public IEnumerator FadeOut(float duration)
+    public void FadeOut(float duration)
     {
-        float time = 0;
-        while (time <= duration)
-        {
-            time += Time.deltaTime;
-            Renderer.material.SetFloat("_Alpha", Mathf.Clamp(1.0f-(time/duration), 0, 1f));
-            yield return null;
-        }
-        Renderer.material.SetFloat("_Alpha", 0f);
-        SetActive(false);
+        StartCoroutine(ReefHelper.FadeNormalized(ReefHelper.FadeType.Out, 3f,
+            (x) => { Renderer.material.SetFloat("_Alpha", x); },
+            () => { IsActive = false; } ));
     }
 
-    public IEnumerator FadeIn(float duration)
+    public void FadeIn(float duration)
     {
-        float time = 0;
-        while (time <= duration)
-        {
-            time += Time.deltaTime;
-            Renderer.material.SetFloat("_Alpha", Mathf.Clamp(time / duration, 0, 1f));
-            yield return null;
-        }
-        Renderer.material.SetFloat("_Alpha", 1f);
-    }
-
-    public void SetActive(bool active)
-    {
-        IsActive = active;
-        Renderer.enabled = active;
-
-        if (!active)
-        {
-            m_beatInfoManager.OnAudioBeat -= () => Impulse();
-            m_beatInfoManager.OnNormalizedAudioLevelInput -= (x) => NormalizedAudioLevelInput(x);
-        }
+        StartCoroutine(ReefHelper.FadeNormalized(ReefHelper.FadeType.In, 3f, 
+            (x) => { Renderer.material.SetFloat("_Alpha", x); },
+            null));
     }
 
     void OnDrawGizmos()
     {
         Gizmos.color = Color.red;
-        Gizmos.DrawLine(transform.position, position + forward.normalized * 2.0f);
+        Gizmos.DrawLine(transform.position, transform.position + Vector3.ClampMagnitude(forward, 10f));
 
         Gizmos.color = Color.white;
-        Gizmos.DrawLine(transform.position, position + targetDir.normalized * 2.0f);
+        Gizmos.DrawLine(transform.position, transform.position + Vector3.ClampMagnitude(targetDir, 10f));
 
         //Gizmos.color = Color.green;
         //Gizmos.DrawWireSphere(targetLocation, 0.25f);

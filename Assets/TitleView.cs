@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class KinectDepthManager : MonoBehaviour
+public class TitleView : MonoBehaviour
 {
     // Start is called before the first frame update
     void Start()

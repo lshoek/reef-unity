@@ -108,8 +108,10 @@ public class BoidManager : Show
 
     private IEnumerator CancelRoutine(Action callback)
     {
+        m_depthManager.SetActive(false);
+
         foreach (Boid b in boids)
-            StartCoroutine(b.FadeOut(FadeOutDuration));
+            b.FadeOut(FadeOutDuration);
 
         yield return new WaitForSeconds(FadeOutDuration);
         foreach (Boid b in boids)
@@ -125,8 +127,9 @@ public class BoidManager : Show
         foreach (Boid b in boids)
         {
             b.IsActive = true;
-            StartCoroutine(b.FadeIn(1f));
+            b.FadeIn(1f);
         }
+        m_depthManager.SetActive(true);
         base.Renew();
     }
 

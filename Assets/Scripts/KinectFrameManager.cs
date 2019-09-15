@@ -35,7 +35,8 @@ public class KinectFrameManager : MonoBehaviour
 
     private long frameCount = 0;
     public float UpwardsTranslation = 0;
-    public int MaxReliableDistance = 4500;
+    public ushort MaxReliableDistance = 4500;
+
 
     public ushort[] GetDepthData()
     {

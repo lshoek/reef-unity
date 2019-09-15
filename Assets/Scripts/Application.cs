@@ -6,12 +6,15 @@ public class Application : MonoBehaviour
     [HideInInspector] public Transform WorldParent;
 
     public Camera MainCamera { get; private set; }
+    public readonly float MainCameraToBackgroundPlaneDistance = 100f;
 
     public KinectFrameManager KinectFrameManager { get; private set; }
     public CreatureManager CreatureManager { get; private set; }
     public BoidManager BoidManager { get; private set; }
     public BeatInfoManager BeatInfoManager { get; private set; }
     public KinectDepthManager KinectDepthManager { get; private set; }
+    public TitleManager TitleManager { get; private set; }
+    public Scheduler Scheduler { get; private set; }
 
     void Awake()
     {
@@ -27,5 +30,7 @@ public class Application : MonoBehaviour
         BoidManager = FindObjectOfType<BoidManager>();
         BeatInfoManager = FindObjectOfType<BeatInfoManager>();
         KinectDepthManager = FindObjectOfType<KinectDepthManager>();
+        TitleManager = FindObjectOfType<TitleManager>();
+        Scheduler = FindObjectOfType<Scheduler>();
     }
 }

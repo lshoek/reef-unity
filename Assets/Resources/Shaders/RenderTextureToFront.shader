@@ -13,7 +13,6 @@ Properties {
 
 SubShader {
     Tags {"Queue"="Transparent" "IgnoreProjector"="True" "RenderType"="Transparent"}
-    LOD 100
 
     ZTest Always
     ZWrite Off

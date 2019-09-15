@@ -74,7 +74,7 @@ public class CreatureManager : Show
                 Vector2 pos = new Vector2((i / (float)MaxCreatures * ReefHelper.DisplayWidth) - ReefHelper.DisplayWidth / 2,
                     Random.Range(ReefHelper.DisplayHeight / 2, -ReefHelper.DisplayHeight / 2));
 
-                creatures[i].SetActive(true);
+                creatures[i].IsActive = true;
                 creatures[i].CurrentBehavior = Creature.CreatureBehavior.Reactive;
                 creatures[i].AudioSensitive = true;
                 creatures[i].ColliderActive = false;
@@ -90,7 +90,7 @@ public class CreatureManager : Show
         {
             for (int i = 0; i < MaxCreatures; i++)
             {
-                creatures[i].SetActive(creatures[i].Equals(alphaCreature));
+                creatures[i].IsActive = creatures[i].Equals(alphaCreature);
                 creatures[i].CurrentBehavior = Creature.CreatureBehavior.Static;
                 creatures[i].AudioSensitive = true;
                 creatures[i].ColliderActive = false;
@@ -134,7 +134,7 @@ public class CreatureManager : Show
 
         // fade out
         foreach (Creature c in creatures)
-            StartCoroutine(c.FadeOut(FadeOutDuration));
+            c.FadeOut(FadeOutDuration);
 
         yield return new WaitForSeconds(FadeOutDuration);
 
@@ -149,7 +149,7 @@ public class CreatureManager : Show
     #region "Overrides"
     public override void Renew()
     {
-        CurrentBehavior = Random.Range(0, 2) > 0 ? Creature.CreatureBehavior.Static : Creature.CreatureBehavior.Reactive;
+        CurrentBehavior = Random.Range(0, 4) > 0 ? Creature.CreatureBehavior.Static : Creature.CreatureBehavior.Reactive;
         ResetCreatures();
 
         foreach (VideoPlayer vp in videoPlayers)
@@ -157,7 +157,7 @@ public class CreatureManager : Show
 
         foreach (Creature c in creatures)
         {
-            StartCoroutine(c.FadeIn(1f));
+            c.FadeIn(1f);
             c.StartMovement();
         }
         base.Renew();

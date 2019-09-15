@@ -143,28 +143,18 @@ public class Boid : MonoBehaviour
         Renderer.material.SetColor("_Tint", TintColor);
     }
 
-    public IEnumerator FadeOut(float duration)
+    public void FadeOut(float duration)
     {
-        float time = 0;
-        while (time <= duration)
-        {
-            time += Time.deltaTime;
-            Renderer.material.SetFloat("_Alpha", Mathf.Clamp(1.0f - (time / duration), 0, 1f));
-            yield return null;
-        }
-        Renderer.material.SetFloat("_Alpha", 0f);
+        StartCoroutine(ReefHelper.FadeNormalized(ReefHelper.FadeType.Out, duration, 
+            (x) => Renderer.material.SetFloat("_Alpha", x),
+            () => IsActive = false));
     }
 
-    public IEnumerator FadeIn(float duration)
+    public void FadeIn(float duration)
     {
-        float time = 0;
-        while (time <= duration)
-        {
-            time += Time.deltaTime;
-            Renderer.material.SetFloat("_Alpha", Mathf.Clamp(time / duration, 0, 1f));
-            yield return null;
-        }
-        Renderer.material.SetFloat("_Alpha", 1f);
+        StartCoroutine(ReefHelper.FadeNormalized(ReefHelper.FadeType.In, duration, 
+            (x) => Renderer.material.SetFloat("_Alpha", x),
+            null));
     }
 
     void OnDrawGizmos()
