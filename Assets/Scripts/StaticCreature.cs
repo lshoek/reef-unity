@@ -19,14 +19,27 @@ public class StaticCreature : MonoBehaviour
     private Vector2 forward;
     private float cachedScale = 1.0f;
 
+    private float rotationOffset = 0;
+    private float rotationDirection = 1f;
+
+    public bool EnableRotation { get; set; } = false;
+
     private bool isActive = false;
     public bool IsActive
     {
         get { return isActive; }
         set
         {
-            if (value) m_beatInfoManager.OnNormalizedAudioLevelInput += (x) => NormalizedAudioLevelInput(x);
-            else m_beatInfoManager.OnNormalizedAudioLevelInput -= (x) => NormalizedAudioLevelInput(x);
+            if (value)
+            {
+                m_beatInfoManager.OnNormalizedAudioLevelInputLP += (x) => NormalizedAudioLevelInput(x);
+                rotationOffset = Random.Range(0, 360f);
+                rotationDirection = Random.Range(0, 2) > 0 ? -1f : 1f;
+            }
+            else
+            {
+                m_beatInfoManager.OnNormalizedAudioLevelInputLP -= (x) => NormalizedAudioLevelInput(x);
+            }
             Renderer.enabled = value;
             isActive = value;
         }
@@ -52,8 +65,11 @@ public class StaticCreature : MonoBehaviour
 
     void Update()
     {
-        float angle = Perlin.Noise(Time.time / 2) * NoiseMult;
-        transform.localRotation = Quaternion.Euler(0, 0, angle - 180f);
+        if (IsActive)
+        {
+            float rotationAngle = EnableRotation ? Time.time*2 * rotationDirection : Perlin.Noise(Time.time / 4) * NoiseMult;
+            transform.localRotation = Quaternion.Euler(0, 0, rotationAngle + rotationOffset - 180f);
+        }
     }
 
     public void SetScale(float scale)

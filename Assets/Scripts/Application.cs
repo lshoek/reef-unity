@@ -15,8 +15,9 @@ public class Application : MonoBehaviour
     public BeatInfoManager BeatInfoManager { get; private set; }
     public KinectDepthManager KinectDepthManager { get; private set; }
     public TitleManager TitleManager { get; private set; }
+    public VideoPlaneManager VideoPlaneManager { get; private set; }
     public Scheduler Scheduler { get; private set; }
-    public CreatureClips CreatureClips { get; private set; }
+    public CreatureDataAccessor CreatureDataAccessor { get; private set; }
 
     void Awake()
     {
@@ -34,7 +35,8 @@ public class Application : MonoBehaviour
         BeatInfoManager = FindObjectOfType<BeatInfoManager>();
         KinectDepthManager = FindObjectOfType<KinectDepthManager>();
         TitleManager = FindObjectOfType<TitleManager>();
+        VideoPlaneManager = FindObjectOfType<VideoPlaneManager>();
         Scheduler = FindObjectOfType<Scheduler>();
-        CreatureClips = FindObjectOfType<CreatureClips>();
+        CreatureDataAccessor = FindObjectOfType<CreatureDataAccessor>();
     }
 }

@@ -52,6 +52,11 @@ MonoBehaviour:
   Delay: 2
   Force: 5
   NoiseMult: 8
+  LevelDamping: 0.0625
+  CreatureScale: 0.75
+  CreatureColliderRadius: 3
+  ParticleScale: 0.6
+  ParticleColliderRadius: 3
 --- !u!54 &3141572901989654463
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -75,7 +80,7 @@ SphereCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7449978841299572837}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: b8d92956e378268439c84bb071e305e8, type: 2}
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2

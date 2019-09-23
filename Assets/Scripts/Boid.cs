@@ -18,26 +18,14 @@ public class Boid : MonoBehaviour
     public Transform InnerTransform { get; set; }
     public Renderer Renderer { get; private set; }
 
-    private BeatInfoManager m_beatInfoManager;
     public Color TintColor = Color.white;
 
-    private bool isActive = false;
-    public bool IsActive
-    {
-        get { return isActive; }
-        set
-        {
-            if (value) m_beatInfoManager.OnNormalizedAudioLevelInput += (x) => NormalizedAudioLevelInput(x);
-            else m_beatInfoManager.OnNormalizedAudioLevelInput -= (x) => NormalizedAudioLevelInput(x);
-            isActive = value;
-        }
-    }
+    public bool IsActive { get; set; }
 
     void Awake()
     {
         Renderer = GetComponentInChildren<Renderer>();
         InnerTransform = GetComponentInChildren<Transform>();
-        m_beatInfoManager = Application.Instance.BeatInfoManager;
     }
 
     void Start()
@@ -134,12 +122,6 @@ public class Boid : MonoBehaviour
     private Vector3 To3D(Vector2 vec2d)
     {
         return new Vector3(vec2d.x, vec2d.y, settings.layer);
-    }
-
-    private void NormalizedAudioLevelInput(float level)
-    {
-        Renderer.material.SetFloat("_TintPct", level);
-        Renderer.material.SetColor("_Tint", TintColor);
     }
 
     public void FadeOut(float duration)

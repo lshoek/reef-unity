@@ -5,7 +5,9 @@ using UnityEngine;
 
 public class BeatInfoManager : MonoBehaviour
 {
-    AudioLevelTracker m_audioLevelTracker;
+    AudioLevelTracker[] m_audioLevelTrackers;
+
+    public bool UseAudioInterface = true;
 
     [Range(0, 1)] public float NormalizedAudioPeakThreshold = 0.75f;
     [SerializeField] private float beatTimeout = 120f;
@@ -14,16 +16,17 @@ public class BeatInfoManager : MonoBehaviour
 
     public bool IsActive { get; private set; } = false;
 
-    public event Action<float> OnNormalizedAudioLevelInput;
+    public event Action<float> OnNormalizedAudioLevelInputLP;
+    public event Action<float> OnNormalizedAudioLevelInputHP;
     public event Action OnAudioBeat;
 
     void Start()
     {
-        m_audioLevelTracker = GetComponent<AudioLevelTracker>();
+        m_audioLevelTrackers = GetComponents<AudioLevelTracker>();
         EnableAudioInterface(false);
     }
 
-    public void NormalizedLevelInput(float level)
+    public void NormalizedLevelInputLP(float level)
     {
         // failsafe
         if (!IsActive) return;
@@ -33,6 +36,7 @@ public class BeatInfoManager : MonoBehaviour
             Debug.LogWarning("Default audio device could not be opened. Audio Level Tracker was disabled.");
         }
         if (float.IsNaN(level)) return;
+        level = Mathf.Clamp01(level);
 
         // max 200bpm
         if (Time.time > lastPeak + 60 / 200f)
@@ -45,17 +49,27 @@ public class BeatInfoManager : MonoBehaviour
                 lastPeak = Time.time;
             }
         }
-        OnNormalizedAudioLevelInput?.Invoke(level);
+        OnNormalizedAudioLevelInputLP?.Invoke(level);
+    }
+
+    public void NormalizedLevelInputHP(float level)
+    {
+        if (!IsActive) return;
+        if (float.IsNaN(level)) return;
+
+        level = Mathf.Clamp01(level);
+        OnNormalizedAudioLevelInputHP?.Invoke(level);
     }
 
     public void SetActive(bool active)
     {
         IsActive = active;
-        m_audioLevelTracker.enabled = active;
         lastPeak = Time.time;
 
-        EnableAudioInterface(active);
+        foreach (var alt in m_audioLevelTrackers)
+            alt.enabled = active;
 
+        EnableAudioInterface(active);
         StartCoroutine(WaitForInputDevice());
     }
 
@@ -72,7 +86,8 @@ public class BeatInfoManager : MonoBehaviour
         // Kinect + MOTU = latency city, my workaround is to disable the the audio interface whenever the Kinect is activated.
         // Kinect v2 Microphone Array fails, which actually seems to be convenient when trying to terminate LASP.
 
-        string deviceName = enable ? "Line In 1-2" : "Kinect v2 Microphone Array";
+        string iface = UseAudioInterface ? "Line In 1-2" : "Stereo Mix";
+        string deviceName = enable ? iface : "Kinect v2 Microphone Array";
         System.Diagnostics.Process.Start("C:/nircmd-x64/nircmd.exe", $"setdefaultsounddevice \"{deviceName}\"");
     }
 }

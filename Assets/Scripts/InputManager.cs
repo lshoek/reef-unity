@@ -33,5 +33,9 @@ public class InputManager : MonoBehaviour
             int layerIndex = ((int)m_scheduler.CurrentAquaticLayerMode - 1) % ReefHelper.NumAquaticLayers;
             m_scheduler.CurrentAquaticLayerMode = (ReefHelper.AquaticLayerMode)layerIndex;
         }
+        else if (Input.GetKeyDown(KeyCode.X))
+        {
+            m_scheduler.QueueAction("EndCurrentShow", true);
+        }
     }
 }

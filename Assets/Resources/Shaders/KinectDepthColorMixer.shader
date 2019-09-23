@@ -11,6 +11,7 @@ Properties
 	_DepthMaxRamp ("DepthMaxRamp", Float) = 0
 	_Alpha ("Alpha", Float) = 0
 	_AmbientColorRate ("AmbientColorRate", Float) = 1.0
+	//_AmbientColorMult ("AmbientColorMult", Float) = 1.0
 }
 SubShader {
 Pass {
@@ -48,6 +49,7 @@ float _DepthMinRamp;
 float _DepthMaxRamp;
 float _Alpha;
 float _AmbientColorRate;
+//float _AmbientColorMult;
 
 StructuredBuffer<float2> DepthCoords;
 
@@ -75,8 +77,8 @@ fixed4 frag (v2f i, in uint id : SV_InstanceID) : COLOR
 
 	float x = uv.x * 25.0 + time;
 	float y = uv.y * 25.0 + time;
-	uv.y += cos(x+y) * 0.0090 * cos(y);
-	uv.x += sin(x-y) * 0.0090 * sin(y);
+	uv.y += cos(x+y) * 0.0080 * cos(y);
+	uv.x += sin(x-y) * 0.0080 * sin(y);
 	uv_ex.y += cos(x+y) * 0.025 * cos(y);
 	uv_ex.x += sin(x-y) * 0.025 * sin(y);
 
@@ -86,7 +88,7 @@ fixed4 frag (v2f i, in uint id : SV_InstanceID) : COLOR
 
 	fixed depth = tex2D(_DepthTex, i.uv).r;
 	fixed4 texcol = tex2D(_ColorTex, DepthCoords[c_idx]);
-	//fixed gray = clamp(avg3(texcol),0,1.0);
+	fixed gray = avg3(texcol);
 
 	float map_min = smoothstep(0, 1.0, clamp(map(depth, _DepthMin, _DepthMin+_DepthMinRamp, 0, 1.0), 0, 1.0));
 	float map_max = smoothstep(0, 1.0, clamp(map(depth, _DepthMax-_DepthMaxRamp, _DepthMax, 1.0, 0), 0, 1.0));
@@ -95,7 +97,10 @@ fixed4 frag (v2f i, in uint id : SV_InstanceID) : COLOR
 	float lb_min = smoothstep(0, 1.0, clamp(map(uv_ex.x, 0, 0.2, 0, 1.0), 0, 1.0));
 	float lb_max = smoothstep(0, 1.0, clamp(map(uv_ex.x, 0.8, 1.0, 1.0, 0), 0, 1.0));
 
-	col.rgb = lerp(texcol.rgb, texcol.rgb * _AmbientColor.rgb, _AmbientColorRate);
+	fixed3 gradient = _AmbientColor.rgb * gray;
+	fixed3 ambient = texcol.rgb * _AmbientColor.rgb;
+
+	col.rgb = lerp(gradient, ambient, _AmbientColorRate);
 	col.a = inv(smoothstep(0, 1.0, pct)) * min(lb_min,lb_max) * _Alpha;
 
 	return col;

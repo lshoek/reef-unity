@@ -19,9 +19,10 @@ public class BoidManager : Show
     private VideoPlayer videoPlayer;
     private RenderTexture RT;
 
-    private CreatureClips m_clips;
+    private CreatureDataAccessor m_clips;
     private KinectDepthManager m_depthManager;
     private BeatInfoManager m_beatInfoManager;
+    private VideoPlaneManager m_videoPlaneManager;
 
     private int boidClipIndex = 0;
     private const int VIDEO_RT_RES = 128;
@@ -30,7 +31,8 @@ public class BoidManager : Show
     {
         m_depthManager = Application.Instance.KinectDepthManager;
         m_beatInfoManager = Application.Instance.BeatInfoManager;
-        m_clips = Application.Instance.CreatureClips;
+        m_videoPlaneManager = Application.Instance.VideoPlaneManager;
+        m_clips = Application.Instance.CreatureDataAccessor;
 
         settings = new BoidSettings();
         settings.obstacleMask = 1 << LayerMask.NameToLayer("Bounds") | 1 << LayerMask.NameToLayer("ColliderMesh");
@@ -40,7 +42,7 @@ public class BoidManager : Show
         videoPlayer.isLooping = true;
         videoPlayer.audioOutputMode = VideoAudioOutputMode.None;
         videoPlayer.renderMode = VideoRenderMode.RenderTexture;
-        videoPlayer.clip = m_clips.GetRandom();
+        videoPlayer.clip = m_clips.GetRandomClip();
 
         RT = new RenderTexture(VIDEO_RT_RES, VIDEO_RT_RES, 0, RenderTextureFormat.ARGB32);
         videoPlayer.targetTexture = RT;
@@ -122,7 +124,6 @@ public class BoidManager : Show
         foreach (Boid b in boids)
             b.IsActive = false;
 
-        m_depthManager.SetActive(false);
         callback();
     }
 
@@ -130,6 +131,7 @@ public class BoidManager : Show
     public override void Renew()
     {
         if (m_beatInfoManager.IsActive) m_beatInfoManager.SetActive(false);
+        m_videoPlaneManager.DarkenBackground(true);
 
         ResetBoids();
         foreach (Boid b in boids)
@@ -138,12 +140,19 @@ public class BoidManager : Show
             b.FadeIn(1f);
         }
         m_depthManager.SetActive(true);
+
         base.Renew();
     }
 
     public override void Cancel()
     {
-        StartCoroutine(CancelRoutine(() => base.Cancel()));
+        StartCoroutine(CancelRoutine(() =>
+        {
+            m_videoPlaneManager.DarkenBackground(false);
+            m_depthManager.SetActive(false);
+
+            base.Cancel();
+        }));
     }
     #endregion
 

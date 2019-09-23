@@ -9,8 +9,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 876317443870059083}
-  - component: {fileID: 3141572901989654463}
-  - component: {fileID: 1720354155546497146}
   - component: {fileID: 7462019542448318662}
   m_Layer: 11
   m_Name: StaticCreature
@@ -34,35 +32,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!54 &3141572901989654463
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7449978841299572837}
-  serializedVersion: 2
-  m_Mass: 2
-  m_Drag: 1
-  m_AngularDrag: 1
-  m_UseGravity: 0
-  m_IsKinematic: 0
-  m_Interpolate: 1
-  m_Constraints: 56
-  m_CollisionDetection: 2
---- !u!135 &1720354155546497146
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7449978841299572837}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 4
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &7462019542448318662
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -78,6 +47,7 @@ MonoBehaviour:
   AudioSensitive: 1
   TintColor: {r: 1, g: 1, b: 1, a: 1}
   NoiseMult: 8
+  LevelDamping: 0.0625
 --- !u!1 &8707833609986642692
 GameObject:
   m_ObjectHideFlags: 0

@@ -12,7 +12,7 @@ public class Creature : MonoBehaviour
     public SphereCollider Collider { get; private set; }
 
     public bool ColliderActive { get; set; }
-    public bool AudioSensitive = false;
+    public bool AudioSensitive = true;
 
     public Color TintColor = Color.white;
     public float TurningSpeed = 1f;
@@ -21,13 +21,18 @@ public class Creature : MonoBehaviour
     public float NoiseMult = 8f;
     public float LevelDamping = 0.0625f;
 
+    public float CreatureScale = 0.75f;
+    public float CreatureColliderRadius = 3f;
+    public float ParticleScale = 0.5f;
+    public float ParticleColliderRadius = 3f;
+
     private float targetProximity = 8f;
-    private float originalRadius;
     private float noiseSeed;
 
     private Vector2 position;
     private Vector2 forward;
-    private float cachedScale = 1.0f;
+    private float cachedScale = 1f;
+    private float cachedRadius = 1f;
 
     private Vector2 targetDir;
     private Vector2 targetLocation;
@@ -40,12 +45,12 @@ public class Creature : MonoBehaviour
         {
             if (value && AudioSensitive)
             {
-                m_beatInfoManager.OnNormalizedAudioLevelInput += (x) => NormalizedAudioLevelInput(x);
+                m_beatInfoManager.OnNormalizedAudioLevelInputLP += (x) => NormalizedAudioLevelInput(x);
                 m_beatInfoManager.OnAudioBeat += () => Impulse();
             }
             else if (!value && AudioSensitive)
             {
-                m_beatInfoManager.OnNormalizedAudioLevelInput -= (x) => NormalizedAudioLevelInput(x);
+                m_beatInfoManager.OnNormalizedAudioLevelInputLP -= (x) => NormalizedAudioLevelInput(x);
                 m_beatInfoManager.OnAudioBeat -= () => Impulse();
             }
             Renderer.enabled = value;
@@ -53,21 +58,11 @@ public class Creature : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Whether the creature is moving about aimlessly.
-    /// </summary>
-    private bool isWandering = false;
-
-    /// <summary>
-    /// Whether the creature has fulfilled its duties and escaped.
-    /// </summary>
-    private bool taskFinished = false;
-
     void Awake()
     {
         Renderer = GetComponentInChildren<Renderer>();
         Collider = GetComponent<SphereCollider>();
-        originalRadius = Collider.radius;
+        cachedRadius = Collider.radius;
     }
 
     void Start()
@@ -76,6 +71,7 @@ public class Creature : MonoBehaviour
 
         position = transform.position;
         forward = (position + Random.insideUnitCircle).normalized;
+        cachedRadius = Collider.radius;
 
         noiseSeed = Random.Range(0, 64f);
         ResetTargetLocation();
@@ -91,38 +87,25 @@ public class Creature : MonoBehaviour
         position = transform.position;
         if (Vector2.Distance(position, targetLocation) < targetProximity)
         {
-            if (isWandering) ResetTargetLocation();
-            else taskFinished = true; // the creature has reached its final destination
+            ResetTargetLocation();
         }
-        if (!taskFinished)
-        {
-            targetDir = (targetLocation - position).normalized;
+        targetDir = (targetLocation - position).normalized;
 
-            float sa = Vector2.SignedAngle(forward, targetDir);
-            if (Mathf.Abs(sa) > TurningSpeed)
-            {
-                float turn = TurningSpeed * (Mathf.Clamp(sa, -45f, 45f) / 45f);
-                forward = (Quaternion.Euler(0, 0, turn) * forward).normalized;
-            }
-            float noiseAngle = Perlin.Noise(Time.time / 2) * NoiseMult;
-            float angle = Mathf.Atan2(forward.y, forward.x) * Mathf.Rad2Deg + noiseAngle;
-            transform.localRotation = Quaternion.Euler(0, 0, angle - 180f);
+        float sa = Vector2.SignedAngle(forward, targetDir);
+        if (Mathf.Abs(sa) > TurningSpeed)
+        {
+            float turn = TurningSpeed * (Mathf.Clamp(sa, -45f, 45f) / 45f);
+            forward = (Quaternion.Euler(0, 0, turn) * forward).normalized;
         }
+        float noiseAngle = Perlin.Noise(Time.time / 2) * NoiseMult;
+        float angle = Mathf.Atan2(forward.y, forward.x) * Mathf.Rad2Deg + noiseAngle;
+        transform.localRotation = Quaternion.Euler(0, 0, angle - 180f);
     }
 
     public void StartMovement()
     {
-        isWandering = true;
-        taskFinished = false;
         ResetTargetLocation();
-
         if (!AudioSensitive) StartCoroutine(PeriodicImpulse(Delay));
-    }
-
-    public void Escape()
-    {
-        targetLocation = Random.insideUnitCircle.normalized * Application.Instance.MainCamera.orthographicSize * 3f;
-        isWandering = false;
     }
 
     private void ResetTargetLocation()
@@ -130,11 +113,18 @@ public class Creature : MonoBehaviour
         targetLocation = new Vector2(Random.Range(-ReefHelper.DisplayWidth / 2, ReefHelper.DisplayWidth / 2), Random.Range(ReefHelper.DisplayHeight / 2, -ReefHelper.DisplayHeight / 2));
     }
 
-    public void SetScale(float scale)
+    public void SetMode(bool creature)
     {
-        cachedScale = scale;
-        transform.localScale = new Vector3(cachedScale, cachedScale, 1f);
-        Collider.radius = originalRadius * cachedScale;
+        if (creature)
+        {
+            cachedScale = CreatureScale;
+            Collider.radius = CreatureColliderRadius;
+        }
+        else
+        {
+            cachedScale = ParticleScale;
+            Collider.radius = ParticleColliderRadius;
+        }
     }
 
     private IEnumerator PeriodicImpulse(float period)
@@ -142,7 +132,7 @@ public class Creature : MonoBehaviour
         // force varying movement offsets
         yield return new WaitForSeconds(Random.Range(0.5f, 2f));
 
-        while (!taskFinished)
+        while (isActive)
         {
             Impulse();
             yield return new WaitForSeconds(period);

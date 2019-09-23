@@ -258,7 +258,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Layer: 1
-  Scale: 2
+  Scale: 1.65
   FadeOutDuration: 5
   TintColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1001 &298710963
@@ -546,6 +546,7 @@ GameObject:
   - component: {fileID: 634230300}
   - component: {fileID: 634230302}
   - component: {fileID: 634230301}
+  - component: {fileID: 634230303}
   m_Layer: 0
   m_Name: BeatInfoManager
   m_TagString: Untagged
@@ -589,7 +590,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 634230302}
-        m_MethodName: NormalizedLevelInput
+        m_MethodName: NormalizedLevelInputLP
         m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -612,8 +613,42 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f7614993d5c739c44a5438341a865b68, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  UseAudioInterface: 0
   NormalizedAudioPeakThreshold: 0.75
   beatTimeout: 120
+--- !u!114 &634230303
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 634230299}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6eb406d4909d1d44fa489d30cba6c3fc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _filterType: 3
+  _peakTracking: 1
+  _gain: 6
+  _dynamicRange: 10
+  _holdAndFallDown: 1
+  _fallDownSpeed: 0.4
+  _normalizedLevelEvent:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 634230302}
+        m_MethodName: NormalizedLevelInputHP
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_TypeName: Lasp.AudioLevelEvent, Lasp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 --- !u!1 &674579074
 GameObject:
   m_ObjectHideFlags: 0
@@ -697,12 +732,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   InitialDelay: 1
-  ShowDuration: 20
+  MinShowDuration: 10
+  MaxShowDuration: 12
   TimeBetweenShows: 2
   WeightSettings:
-  - 20
-  - 40
-  - 40
+  - 0
+  - 200
+  - 0
+  - 0
   currentShow: {fileID: 0}
   Active: 1
   m_currentAquaticLayerMode: 0
@@ -749,8 +786,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ef19e3f4eea904247acb5fa3c2f1c6f2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Depth: 3
-  m_titleTextures: []
+  Depth: 4
+  m_titleTextures:
+  - {fileID: 2800000, guid: f6f86f574701d8f4ba97c3a36e19dd96, type: 3}
+  - {fileID: 2800000, guid: 6cedcb3da9d10f342a95197549701111, type: 3}
+  - {fileID: 2800000, guid: cade9c7ba21a47a44b441bf9a3bdbc4a, type: 3}
+  - {fileID: 2800000, guid: 90f307cc3f92b9b45b43a9f1b9330ff4, type: 3}
+  LevelDamping: 0.03125
 --- !u!1 &979370221
 GameObject:
   m_ObjectHideFlags: 0
@@ -928,8 +970,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Depth: 2
   AmbientColor: {r: 0.08220911, g: 0, b: 1, a: 1}
-  AmbientColorRate: 1
-  ShaderDepthMin: 0.0025
+  AmbientColorRate: 0.5
+  ShaderDepthMin: 0.01
   ShaderDepthMinRamp: 0.025
   ShaderDepthMax: 0.01
   ShaderDepthMaxRamp: 0.0025
@@ -974,7 +1016,7 @@ Camera:
     width: 1
     height: 1
   near clip plane: 0.3
-  far clip plane: 100
+  far clip plane: 50
   field of view: 60
   orthographic: 1
   orthographic size: 10
@@ -1512,7 +1554,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1895483067}
   m_LocalRotation: {x: -0.7071068, y: 0, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: 0, z: 101}
+  m_LocalPosition: {x: 0, y: 0, z: 51}
   m_LocalScale: {x: 3.55, y: 1, z: 2}
   m_Children: []
   m_Father: {fileID: 1368586041}
@@ -1748,8 +1790,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   VideoCreaturesOnly: 1
-  MaxCreatures: 5
-  CreatureScale: 0.75
+  MaxCreatures: 8
   Layer: 1
   EscapeDuration: 10
   FadeOutDuration: 10
@@ -1798,9 +1839,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   videoClips:
-  - {fileID: 32900000, guid: 880f2141045bfae418236341afd36a83, type: 3}
+  - {fileID: 32900000, guid: d9096fdddf8ac5f449d95c27a2ef2772, type: 3}
+  - {fileID: 32900000, guid: af7feedafbaa0e0499c3e0ebae8bd384, type: 3}
+  - {fileID: 32900000, guid: f9b13190505717b42952230122775ef0, type: 3}
+  - {fileID: 32900000, guid: bc710a79ea33c2a4e8309d9a8be45b64, type: 3}
+  - {fileID: 32900000, guid: 744f007f27d9112409eb75ae82775ac8, type: 3}
+  - {fileID: 32900000, guid: e5d5ad807635c6d498f52aa90cd9a009, type: 3}
+  - {fileID: 32900000, guid: f6291295f179cf243bf06cb76b03905d, type: 3}
+  - {fileID: 32900000, guid: 09dfc21531c6c214aa5ce55cc26ce26e, type: 3}
+  - {fileID: 32900000, guid: d064f0bdb80f76641ae72dc8e0e8642b, type: 3}
+  - {fileID: 32900000, guid: 7350ac69f51d4284f9cce13198827db0, type: 3}
+  - {fileID: 32900000, guid: 50aaabab4bd6b9e4ba930573c6cb46b6, type: 3}
   - {fileID: 32900000, guid: c46313192300c5d489fcc0da45898290, type: 3}
   MinDuration: 10
   MaxDuration: 30
-  MinTransitionTime: 5
+  MinTransitionTime: 2
   MaxTransitionTime: 10
+  TintMultiplier: -2
+  DarknessLevel: 0.5

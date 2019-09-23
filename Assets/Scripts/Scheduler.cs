@@ -5,7 +5,8 @@ using UnityEngine;
 public class Scheduler : MonoBehaviour
 {
     public float InitialDelay = 1f;
-    public float ShowDuration = 30f;
+    public float MinShowDuration = 10f;
+    public float MaxShowDuration = 60f;
 
     public float TimeBetweenShows = 10f;
     private float cachedTimeBetweenShows;
@@ -20,6 +21,7 @@ public class Scheduler : MonoBehaviour
 
     private List<Show> availableShows;
     [SerializeField] private Show currentShow;
+    private Show previousShow;
     private Show queuedShow;
 
     private Coroutine activeRoutine;
@@ -59,13 +61,15 @@ public class Scheduler : MonoBehaviour
     /// </summary>
     public void QueueAction(string args, bool endCurrentShow)
     {
-        // temporary solution against abuse
-        if (currentShow == titleManager) return;
+        if (!args.Equals("EndCurrentShow"))
+        {
+            // temporary solution against abuse
+            if (currentShow == titleManager) return;
 
-        ActionQueued = true;
-        titleManager.SetTitle(args);
-        queuedShow = titleManager;
-
+            ActionQueued = true;
+            titleManager.QueueTitle(args);
+            queuedShow = titleManager;
+        }
         if (endCurrentShow)
         {
             TimeBetweenShows = 0f;
@@ -84,10 +88,7 @@ public class Scheduler : MonoBehaviour
         if (boidManager != null) availableShows.Add(boidManager);
         if (titleManager != null) availableShows.Add(titleManager);
 
-        foreach (Show show in availableShows)
-            show.Duration = ShowDuration;
-
-        showWeights = new float[availableShows.Count-1];
+        showWeights = new float[availableShows.Count];
         int numWeightSettings = WeightSettings.Length;
         for (int i = 0; i < showWeights.Length; i++)
         {
@@ -96,7 +97,17 @@ public class Scheduler : MonoBehaviour
 
         while (Active)
         {
-            currentShow = ActionQueued ? queuedShow : availableShows[GetRandomWeightedIndex(showWeights)];
+            Show next = currentShow;
+            int attempts = 2;
+            for (int i = 0; i < attempts; i++)
+            {
+                next = ActionQueued ? queuedShow : availableShows[GetRandomWeightedIndex(showWeights)];
+                if (next != previousShow) break;
+            }
+            previousShow = currentShow;
+            currentShow = next;
+            currentShow.Duration = Random.Range(MinShowDuration, MaxShowDuration);
+
             ActionQueued = false;
             TimeBetweenShows = cachedTimeBetweenShows;
 
