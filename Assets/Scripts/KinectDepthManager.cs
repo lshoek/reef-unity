@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class KinectDepthManager : MonoBehaviour
@@ -10,8 +8,9 @@ public class KinectDepthManager : MonoBehaviour
     private DepthMesh m_kinectDepthMesh;
     private ushort maxDepth;
 
-    [Range(0, 0.1f)]
-    public float DepthScale = 0.05f;
+    public float DepthScale = 1.25f;
+    private float worldDepth;
+
     public bool IsActive { get; private set; } = false;
 
     public event Action<bool> OnActivationChanged;
@@ -19,6 +18,27 @@ public class KinectDepthManager : MonoBehaviour
     public DepthMesh GetDepthMesh()
     {
         return m_kinectDepthMesh;
+    }
+
+    public Vector3 GetHighestDepthLocation()
+    {
+        int index_max = 0;
+        float depth_max = 0;
+
+        for (int y = 0; y < m_kinectDepthMesh.Height; y++)
+        {
+            for (int x = 0; x < m_kinectDepthMesh.Width; x++)
+            {
+                int idx = y * m_kinectDepthMesh.Width + x;
+                float d = m_kinectDepthMesh.verts[idx].z;
+                if (d > depth_max)
+                {
+                    depth_max = d;
+                    index_max = idx;
+                }
+            }
+        }
+        return m_kinectDepthMesh.verts[index_max];
     }
 
     void Start()
@@ -36,7 +56,7 @@ public class KinectDepthManager : MonoBehaviour
         m_kinectDepthMesh.Init(meshSize, false);
 
         maxDepth = m_frameManager.MaxReliableDistance;
-        DepthScale = Application.Instance.MainCameraToBackgroundPlaneDistance*1.2f / maxDepth;
+        worldDepth = Application.Instance.MainCameraToBackgroundPlaneDistance * DepthScale / maxDepth;
     }
 
     void Update()
@@ -44,7 +64,7 @@ public class KinectDepthManager : MonoBehaviour
         if (IsActive)
         {
             ushort[] depthData = m_frameManager.GetDepthData();
-            UpdateDepthMesh(m_kinectDepthMesh, depthData, DepthScale, m_frameManager.ColliderMeshDownsampling);
+            UpdateDepthMesh(m_kinectDepthMesh, depthData, worldDepth, m_frameManager.ColliderMeshDownsampling);
         }
     }
 

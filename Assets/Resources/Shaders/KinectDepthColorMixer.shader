@@ -3,13 +3,14 @@ Properties
 {
 	_ColorTex ("Texture", 2D) = "white" {}
 	_DepthTex ("Texture", 2D) = "white" {}
-	_AmbientColor ("AmbientColor", Color) = (1,1,1,1)
+	_AmbientColor ("AmbientColor", Color) = (0,0,1,1)
 	_DownsampleSize ("DownsampleSize", Float) = 8
 	_DepthMin ("DepthMin", Float) = 0
 	_DepthMax ("DepthMax", Float) = 0
 	_DepthMinRamp ("DepthMinRamp", Float) = 0
 	_DepthMaxRamp ("DepthMaxRamp", Float) = 0
 	_Alpha ("Alpha", Float) = 0
+	_AmbientColorRate ("AmbientColorRate", Float) = 1.0
 }
 SubShader {
 Pass {
@@ -46,6 +47,7 @@ float _DepthMax;
 float _DepthMinRamp;
 float _DepthMaxRamp;
 float _Alpha;
+float _AmbientColorRate;
 
 StructuredBuffer<float2> DepthCoords;
 
@@ -84,7 +86,7 @@ fixed4 frag (v2f i, in uint id : SV_InstanceID) : COLOR
 
 	fixed depth = tex2D(_DepthTex, i.uv).r;
 	fixed4 texcol = tex2D(_ColorTex, DepthCoords[c_idx]);
-	fixed gray = clamp(avg3(texcol),0,1.0);
+	//fixed gray = clamp(avg3(texcol),0,1.0);
 
 	float map_min = smoothstep(0, 1.0, clamp(map(depth, _DepthMin, _DepthMin+_DepthMinRamp, 0, 1.0), 0, 1.0));
 	float map_max = smoothstep(0, 1.0, clamp(map(depth, _DepthMax-_DepthMaxRamp, _DepthMax, 1.0, 0), 0, 1.0));
@@ -93,7 +95,7 @@ fixed4 frag (v2f i, in uint id : SV_InstanceID) : COLOR
 	float lb_min = smoothstep(0, 1.0, clamp(map(uv_ex.x, 0, 0.2, 0, 1.0), 0, 1.0));
 	float lb_max = smoothstep(0, 1.0, clamp(map(uv_ex.x, 0.8, 1.0, 1.0, 0), 0, 1.0));
 
-	col.rgb = _AmbientColor.rgb * gray;
+	col.rgb = lerp(texcol.rgb, texcol.rgb * _AmbientColor.rgb, _AmbientColorRate);
 	col.a = inv(smoothstep(0, 1.0, pct)) * min(lb_min,lb_max) * _Alpha;
 
 	return col;

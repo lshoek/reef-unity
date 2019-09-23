@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class Boid : MonoBehaviour
 {
@@ -51,7 +50,7 @@ public class Boid : MonoBehaviour
         float startSpeed = (settings.minSpeed + settings.maxSpeed) / 2;
         velocity = forward * startSpeed;
 
-        m_beatInfoManager.OnNormalizedAudioLevelInput -= (x) => NormalizedAudioLevelInput(x);
+        IsActive = false;
     }
 
     public void Init(BoidSettings settings)

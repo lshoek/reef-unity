@@ -1,6 +1,7 @@
-﻿using Lasp;
+﻿using System;
 using System.Collections;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class Creature : MonoBehaviour
 {
@@ -10,24 +11,23 @@ public class Creature : MonoBehaviour
     public Renderer Renderer { get; private set; }
     public SphereCollider Collider { get; private set; }
 
-    public enum CreatureBehavior { Static, Reactive };
-    private CreatureBehavior _currentBehavior;
-
     public bool ColliderActive { get; set; }
     public bool AudioSensitive = false;
 
     public Color TintColor = Color.white;
     public float TurningSpeed = 1f;
     public float Delay = 2f;
-    public float Force = 5f;
+    public float Force = 2f;
     public float NoiseMult = 8f;
+    public float LevelDamping = 0.0625f;
 
-    private float defaultAudioReactiveForce = 4f;
     private float targetProximity = 8f;
     private float originalRadius;
+    private float noiseSeed;
 
     private Vector2 position;
     private Vector2 forward;
+    private float cachedScale = 1.0f;
 
     private Vector2 targetDir;
     private Vector2 targetLocation;
@@ -38,8 +38,16 @@ public class Creature : MonoBehaviour
         get { return isActive; }
         set
         {
-            if (value) m_beatInfoManager.OnNormalizedAudioLevelInput += (x) => NormalizedAudioLevelInput(x);
-            else m_beatInfoManager.OnNormalizedAudioLevelInput -= (x) => NormalizedAudioLevelInput(x);
+            if (value && AudioSensitive)
+            {
+                m_beatInfoManager.OnNormalizedAudioLevelInput += (x) => NormalizedAudioLevelInput(x);
+                m_beatInfoManager.OnAudioBeat += () => Impulse();
+            }
+            else if (!value && AudioSensitive)
+            {
+                m_beatInfoManager.OnNormalizedAudioLevelInput -= (x) => NormalizedAudioLevelInput(x);
+                m_beatInfoManager.OnAudioBeat -= () => Impulse();
+            }
             Renderer.enabled = value;
             isActive = value;
         }
@@ -55,12 +63,6 @@ public class Creature : MonoBehaviour
     /// </summary>
     private bool taskFinished = false;
 
-    public CreatureBehavior CurrentBehavior
-    {
-        get { return _currentBehavior; }
-        set { _currentBehavior = value; }
-    }
-
     void Awake()
     {
         Renderer = GetComponentInChildren<Renderer>();
@@ -75,7 +77,7 @@ public class Creature : MonoBehaviour
         position = transform.position;
         forward = (position + Random.insideUnitCircle).normalized;
 
-        CurrentBehavior = CreatureBehavior.Static;
+        noiseSeed = Random.Range(0, 64f);
         ResetTargetLocation();
     }
 
@@ -86,59 +88,41 @@ public class Creature : MonoBehaviour
 
     void Update()
     {
-        if (CurrentBehavior == CreatureBehavior.Static)
+        position = transform.position;
+        if (Vector2.Distance(position, targetLocation) < targetProximity)
         {
-            float angle = Perlin.Noise(Time.time/2) * NoiseMult;
-            transform.localRotation = Quaternion.Euler(0, 0, angle - 180f);
+            if (isWandering) ResetTargetLocation();
+            else taskFinished = true; // the creature has reached its final destination
         }
-        if (CurrentBehavior == CreatureBehavior.Reactive)
+        if (!taskFinished)
         {
-            position = transform.position;
-            if (Vector2.Distance(position, targetLocation) < targetProximity)
-            {
-                if (isWandering) ResetTargetLocation();
-                else taskFinished = true; // the creature has reached its final destination
-            }
-            if (!taskFinished)
-            {
-                targetDir = (targetLocation - position).normalized;
+            targetDir = (targetLocation - position).normalized;
 
-                float sa = Vector2.SignedAngle(forward, targetDir);
-                if (Mathf.Abs(sa) > TurningSpeed)
-                {
-                    float turn = TurningSpeed * (Mathf.Clamp(sa, -45f, 45f) / 45f);
-                    forward = Quaternion.Euler(0, 0, turn) * forward;
-                }
-                float angle = Mathf.Atan2(forward.y, forward.x) * Mathf.Rad2Deg;
-                transform.localRotation = Quaternion.Euler(0, 0, angle - 180f);
+            float sa = Vector2.SignedAngle(forward, targetDir);
+            if (Mathf.Abs(sa) > TurningSpeed)
+            {
+                float turn = TurningSpeed * (Mathf.Clamp(sa, -45f, 45f) / 45f);
+                forward = (Quaternion.Euler(0, 0, turn) * forward).normalized;
             }
+            float noiseAngle = Perlin.Noise(Time.time / 2) * NoiseMult;
+            float angle = Mathf.Atan2(forward.y, forward.x) * Mathf.Rad2Deg + noiseAngle;
+            transform.localRotation = Quaternion.Euler(0, 0, angle - 180f);
         }
     }
 
     public void StartMovement()
     {
-        if (CurrentBehavior == CreatureBehavior.Reactive)
-        {
-            isWandering = true;
-            taskFinished = false;
-            ResetTargetLocation();
-        }
-        if (AudioSensitive)
-        {
-            m_beatInfoManager.OnAudioBeat += () => Impulse();
-            m_beatInfoManager.OnNormalizedAudioLevelInput += (x) => NormalizedAudioLevelInput(x);
-        }
-        else
-            StartCoroutine(PeriodicImpulse(Delay));
+        isWandering = true;
+        taskFinished = false;
+        ResetTargetLocation();
+
+        if (!AudioSensitive) StartCoroutine(PeriodicImpulse(Delay));
     }
 
     public void Escape()
     {
-        if (CurrentBehavior == CreatureBehavior.Reactive)
-        {
-            targetLocation = Random.insideUnitCircle.normalized * Application.Instance.MainCamera.orthographicSize * 3f;
-            isWandering = false;
-        }
+        targetLocation = Random.insideUnitCircle.normalized * Application.Instance.MainCamera.orthographicSize * 3f;
+        isWandering = false;
     }
 
     private void ResetTargetLocation()
@@ -148,8 +132,9 @@ public class Creature : MonoBehaviour
 
     public void SetScale(float scale)
     {
-        transform.localScale = new Vector3(scale, scale, 1f);
-        Collider.radius = originalRadius * scale;
+        cachedScale = scale;
+        transform.localScale = new Vector3(cachedScale, cachedScale, 1f);
+        Collider.radius = originalRadius * cachedScale;
     }
 
     private IEnumerator PeriodicImpulse(float period)
@@ -168,27 +153,34 @@ public class Creature : MonoBehaviour
     {
         Renderer.material.SetFloat("_TintPct", level);
         Renderer.material.SetColor("_Tint", TintColor);
+        transform.localScale = new Vector3(cachedScale + level * LevelDamping, cachedScale + level * LevelDamping, 1f);
     }
 
     private void Impulse()
     {
-        if (ColliderActive && CurrentBehavior == CreatureBehavior.Reactive)
+        if (ColliderActive)
         {
-            Collider.attachedRigidbody.AddForce(forward * (AudioSensitive ? defaultAudioReactiveForce : Force), ForceMode.Impulse);
+            Collider.attachedRigidbody.AddForce(forward * Force, ForceMode.Impulse);
         }
     }
 
-    public void FadeOut(float duration)
+    public void FadeOut(float duration, Action callback)
     {
         StartCoroutine(ReefHelper.FadeNormalized(ReefHelper.FadeType.Out, 3f,
             (x) => { Renderer.material.SetFloat("_Alpha", x); },
-            () => { IsActive = false; } ));
+            () => {
+                IsActive = false;
+                callback?.Invoke();
+            }));
     }
 
-    public void FadeIn(float duration)
+    public void FadeIn(float duration, Action callback)
     {
         StartCoroutine(ReefHelper.FadeNormalized(ReefHelper.FadeType.In, 3f, 
-            (x) => { Renderer.material.SetFloat("_Alpha", x); },
+            (x) => {
+                Renderer.material.SetFloat("_Alpha", x);
+                callback?.Invoke();
+            }, 
             null));
     }
 

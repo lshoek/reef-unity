@@ -6,7 +6,7 @@ public class BoidSettings
     public float minSpeed = 4f;
     public float maxSpeed = 8f;
     public float perceptionRadius = 5f;
-    public float avoidanceRadius = 2f;
+    public float avoidanceRadius = 3f;
     public float maxSteerForce = 5f;
 
     public float alignWeight = 1f;
@@ -19,7 +19,7 @@ public class BoidSettings
     // collisions
     public LayerMask obstacleMask;
     public float boundsRadius = 0.275f;
-    public float avoidCollisionWeight = 8f;
+    public float avoidCollisionWeight = 9f;
     public float collisionAvoidDist = 3f;
 }
 

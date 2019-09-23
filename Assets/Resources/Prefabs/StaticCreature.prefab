@@ -9,11 +9,11 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 876317443870059083}
-  - component: {fileID: 8687540420625168428}
   - component: {fileID: 3141572901989654463}
   - component: {fileID: 1720354155546497146}
+  - component: {fileID: 7462019542448318662}
   m_Layer: 11
-  m_Name: Creature
+  m_Name: StaticCreature
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -34,24 +34,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &8687540420625168428
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7449978841299572837}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d7754930663e0a84d8d038aacadef1cc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  AudioSensitive: 1
-  TintColor: {r: 1, g: 1, b: 1, a: 1}
-  TurningSpeed: 2
-  Delay: 2
-  Force: 5
-  NoiseMult: 8
 --- !u!54 &3141572901989654463
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -81,6 +63,21 @@ SphereCollider:
   serializedVersion: 2
   m_Radius: 4
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &7462019542448318662
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7449978841299572837}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0eab47c3afb3ae24293d217486df997c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  AudioSensitive: 1
+  TintColor: {r: 1, g: 1, b: 1, a: 1}
+  NoiseMult: 8
 --- !u!1 &8707833609986642692
 GameObject:
   m_ObjectHideFlags: 0

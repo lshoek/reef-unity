@@ -8,8 +8,6 @@ public class TitleManager : Show
     private Camera m_camera;
 
     public Texture[] m_titleTextures;
-    private Texture m_currentTitleTexture; 
-
     private VideoPlane m_titlePlane;
 
     void Start()
@@ -22,7 +20,6 @@ public class TitleManager : Show
 
         m_titlePlane = ob.AddComponent<VideoPlane>();
         m_titlePlane.Init(Depth);
-        m_titlePlane.SetVideoTexture(m_currentTitleTexture);
         m_titlePlane.PlaneMaterial.SetFloat("_Alpha", 0);
     }
 

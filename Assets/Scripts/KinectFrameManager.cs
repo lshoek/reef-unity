@@ -27,7 +27,7 @@ public class KinectFrameManager : MonoBehaviour
     public int ColorFrameHeight = 540;
 
     public readonly int BalancedDownsampling = 8;
-    public readonly int ColliderMeshDownsampling = 16;
+    public readonly int ColliderMeshDownsampling = 8;
 
     public int DepthWidthDownsampled { get { return DepthFrameWidth / ColliderMeshDownsampling; } }
     public int DepthHeightDownsampled { get { return DepthFrameHeight / ColliderMeshDownsampling; } }

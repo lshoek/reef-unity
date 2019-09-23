@@ -12,13 +12,14 @@ public class VideoPlaneManager : MonoBehaviour
 
     public VideoClip[] videoClips;
 
+    public float MinDuration;
+    public float MaxDuration;
+    public float MinTransitionTime;
+    public float MaxTransitionTime;
+
     private const int NUM_BUFFERS = 2;
     private int videoIndex = 0;
     private int previousVideoIndex;
-
-    private float defaultDuration = 5.0f;
-    private float defaultWait = 5.0f;
-    private float lastVideoSwitchTime;
 
     private bool enableRandomization = true;
 
@@ -64,11 +65,14 @@ public class VideoPlaneManager : MonoBehaviour
         activeRoutine = StartCoroutine(ActionDelay(3f));
     }
 
+    /// <summary>
+    /// This routine is called once at Start
+    /// </summary>
     IEnumerator ActionDelay(float duration)
     {
         yield return new WaitForSeconds(duration);
 
-        IEnumerator nextAction = SwapTransition(Random.Range(defaultDuration/5, defaultDuration*2), defaultWait);
+        IEnumerator nextAction = SwapTransition(Random.Range(MinDuration, MaxDuration), Random.Range(MinTransitionTime, MaxTransitionTime));
         activeRoutine = StartCoroutine(nextAction);
     }
 
@@ -86,7 +90,7 @@ public class VideoPlaneManager : MonoBehaviour
         }
         videoPlane[_front].PlaneMaterial.SetFloat("_Alpha", 1f);
 
-        IEnumerator nextAction = SwapTransition(Random.Range(defaultDuration / 5, defaultDuration * 2), defaultWait);
+        IEnumerator nextAction = SwapTransition(Random.Range(MinDuration, MaxDuration), Random.Range(MinTransitionTime, MaxTransitionTime));
         activeRoutine = StartCoroutine(nextAction);
     }
 

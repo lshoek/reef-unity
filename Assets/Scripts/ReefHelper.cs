@@ -7,6 +7,9 @@ public static class ReefHelper
     public static float DisplayWidth;
     public static float DisplayHeight;
 
+    public enum AquaticLayerMode { Epipelagic, Mesopelagic, Bathypelagic, Abyssopelagic,  Hadopelagic }
+    public static int NumAquaticLayers;
+
     private static Camera m_camera;
 
     static ReefHelper()
@@ -15,10 +18,11 @@ public static class ReefHelper
 
         DisplayHeight = 2f * m_camera.orthographicSize;
         DisplayWidth = DisplayHeight * m_camera.aspect;
+
+        NumAquaticLayers = Enum.GetValues(typeof(AquaticLayerMode)).Length;
     }
 
     public enum FadeType { In, Out };
-
     public static IEnumerator FadeNormalized(FadeType fadeType, float duration, Action<float> callback, Action finished)
     {
         float time = 0;

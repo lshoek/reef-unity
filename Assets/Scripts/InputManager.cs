@@ -23,5 +23,15 @@ public class InputManager : MonoBehaviour
         {
             m_scheduler.QueueAction("Title_PitchControllerMitch", true);
         }
+        else if (Input.GetKeyDown(KeyCode.Plus))
+        {
+            int layerIndex = ((int)m_scheduler.CurrentAquaticLayerMode + 1) % ReefHelper.NumAquaticLayers;
+            m_scheduler.CurrentAquaticLayerMode = (ReefHelper.AquaticLayerMode)layerIndex;
+        }
+        else if (Input.GetKeyDown(KeyCode.Minus))
+        {
+            int layerIndex = ((int)m_scheduler.CurrentAquaticLayerMode - 1) % ReefHelper.NumAquaticLayers;
+            m_scheduler.CurrentAquaticLayerMode = (ReefHelper.AquaticLayerMode)layerIndex;
+        }
     }
 }

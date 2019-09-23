@@ -8,6 +8,7 @@ public abstract class Show : MonoBehaviour
     public virtual bool EndOfSequence { get; set; } = false;
     public virtual bool Active { get; private set; } = false;
 
+    public ReefHelper.AquaticLayerMode CurrentAquaticLayerMode { get; set; }
     public Coroutine CurrentRoutine;
 
     public virtual void Cancel()
