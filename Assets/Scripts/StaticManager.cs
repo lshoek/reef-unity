@@ -7,7 +7,7 @@ using Random = UnityEngine.Random;
 
 public class StaticManager : Show
 {
-    private CreatureDataAccessor m_clips;
+    private CreatureDataAccessor m_dataAccessor;
 
     public int Layer = 1;
     public float Scale = 1.0f;
@@ -22,13 +22,13 @@ public class StaticManager : Show
     private Texture[] creatureTextures;
     private StaticCreature creature;
 
-    private bool useVideo = false;
+    private bool useVideo = true;
     private bool rotateCreature = false;
     private const int VIDEO_RT_RES = 1024;
 
     void Start()
     {
-        m_clips = Application.Instance.CreatureDataAccessor;
+        m_dataAccessor = Application.Instance.CreatureDataAccessor;
         m_beatInfoManager = Application.Instance.BeatInfoManager;
 
         creatureTextures = Resources.LoadAll("Textures/Particles", typeof(Texture)).Cast<Texture>().ToArray();
@@ -40,7 +40,7 @@ public class StaticManager : Show
         videoPlayer.isLooping = true;
         videoPlayer.audioOutputMode = VideoAudioOutputMode.None;
         videoPlayer.renderMode = VideoRenderMode.RenderTexture;
-        videoPlayer.clip = m_clips.GetRandomClip();
+        videoPlayer.clip = m_dataAccessor.GetRandomClip();
         videoPlayer.targetTexture = RT;
 
         GameObject ob = Instantiate(Resources.Load("Prefabs/StaticCreature") as GameObject);
@@ -58,13 +58,15 @@ public class StaticManager : Show
 
     private void ResetCreature()
     {
-        videoPlayer.clip = m_clips.GetRandomClip();
+        videoPlayer.clip = m_dataAccessor.GetRandomClip();
+
+        useVideo = Random.Range(0, m_dataAccessor.Particles.Length + m_dataAccessor.Clips.Length) >= m_dataAccessor.Particles.Length;
 
         creature.Renderer.material.mainTexture = useVideo ? 
             videoPlayer.targetTexture : 
             creatureTextures[Random.Range(0, creatureTextures.Length)];
 
-        creature.EnableRotation = true;// Random.Range(0, 2) > 0;
+        creature.EnableRotation = Random.Range(0, 2) > 0;
         creature.IsActive = true;
     }
 

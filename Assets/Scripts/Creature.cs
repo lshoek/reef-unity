@@ -43,16 +43,6 @@ public class Creature : MonoBehaviour
         get { return isActive; }
         set
         {
-            if (value && AudioSensitive)
-            {
-                m_beatInfoManager.OnNormalizedAudioLevelInputLP += (x) => NormalizedAudioLevelInput(x);
-                m_beatInfoManager.OnAudioBeat += () => Impulse();
-            }
-            else if (!value && AudioSensitive)
-            {
-                m_beatInfoManager.OnNormalizedAudioLevelInputLP -= (x) => NormalizedAudioLevelInput(x);
-                m_beatInfoManager.OnAudioBeat -= () => Impulse();
-            }
             Renderer.enabled = value;
             isActive = value;
         }
@@ -75,6 +65,12 @@ public class Creature : MonoBehaviour
 
         noiseSeed = Random.Range(0, 64f);
         ResetTargetLocation();
+
+        if (AudioSensitive)
+        {
+            m_beatInfoManager.OnNormalizedAudioLevelInputLP += (x) => NormalizedAudioLevelInput(x);
+            m_beatInfoManager.OnAudioBeat += () => Impulse();
+        }
     }
 
     public void Init(CreatureManager manager)
@@ -148,7 +144,7 @@ public class Creature : MonoBehaviour
 
     private void Impulse()
     {
-        if (ColliderActive)
+        if (ColliderActive && IsActive)
         {
             Collider.attachedRigidbody.AddForce(forward * Force, ForceMode.Impulse);
         }

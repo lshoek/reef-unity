@@ -19,7 +19,7 @@ public class BoidManager : Show
     private VideoPlayer videoPlayer;
     private RenderTexture RT;
 
-    private CreatureDataAccessor m_clips;
+    private CreatureDataAccessor m_dataAccessor;
     private KinectDepthManager m_depthManager;
     private BeatInfoManager m_beatInfoManager;
     private VideoPlaneManager m_videoPlaneManager;
@@ -32,7 +32,7 @@ public class BoidManager : Show
         m_depthManager = Application.Instance.KinectDepthManager;
         m_beatInfoManager = Application.Instance.BeatInfoManager;
         m_videoPlaneManager = Application.Instance.VideoPlaneManager;
-        m_clips = Application.Instance.CreatureDataAccessor;
+        m_dataAccessor = Application.Instance.CreatureDataAccessor;
 
         settings = new BoidSettings();
         settings.obstacleMask = 1 << LayerMask.NameToLayer("Bounds") | 1 << LayerMask.NameToLayer("ColliderMesh");
@@ -42,7 +42,7 @@ public class BoidManager : Show
         videoPlayer.isLooping = true;
         videoPlayer.audioOutputMode = VideoAudioOutputMode.None;
         videoPlayer.renderMode = VideoRenderMode.RenderTexture;
-        videoPlayer.clip = m_clips.GetRandomClip();
+        videoPlayer.clip = m_dataAccessor.GetRandomClip();
 
         RT = new RenderTexture(VIDEO_RT_RES, VIDEO_RT_RES, 0, RenderTextureFormat.ARGB32);
         videoPlayer.targetTexture = RT;
@@ -71,8 +71,8 @@ public class BoidManager : Show
             boids[i].transform.forward = new Vector3(forward.x, forward.y);
             boids[i].Renderer.material.SetTexture("_MainTex", RT);
         }
-        boidClipIndex = Random.Range(0, m_clips.Clips.Length);
-        videoPlayer.clip = m_clips.Clips[boidClipIndex];
+        boidClipIndex = Random.Range(0, m_dataAccessor.Clips.Length);
+        videoPlayer.clip = m_dataAccessor.Clips[boidClipIndex];
     }
 
     void Update()

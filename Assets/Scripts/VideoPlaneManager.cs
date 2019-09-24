@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using UnityEngine;
 using UnityEngine.Video;
 using Random = UnityEngine.Random;
@@ -14,6 +13,7 @@ public class VideoPlaneManager : MonoBehaviour
     private VideoPlane brightnessPlane;
 
     public VideoClip[] videoClips;
+    private VideoIndexStack videoIndexStack;
 
     public float MinDuration;
     public float MaxDuration;
@@ -22,6 +22,15 @@ public class VideoPlaneManager : MonoBehaviour
 
     public float TintMultiplier = 1f;
     public float DarknessLevel = 0.25f;
+
+    public bool EnableColorizer = true;
+    private bool colorizerOn = false;
+
+    public Color AtmosphereColor = Color.white;
+    public float AtmosphereRate = 0;
+    private float colorizerDamping = 0;
+    private float colorizerTime;
+    private float noiseSeed;
 
     private const int NUM_BUFFERS = 2;
     private int videoIndex = 0;
@@ -75,6 +84,7 @@ public class VideoPlaneManager : MonoBehaviour
 
         _front = NUM_BUFFERS - 1;
 
+        videoIndexStack = new VideoIndexStack(videoClips.Length/2);
         videoIndex = Random.Range(0, videoClips.Length);
         previousVideoIndex = videoIndex;
 
@@ -85,6 +95,53 @@ public class VideoPlaneManager : MonoBehaviour
         PrepareClip(videoPlayer[_back]);
 
         activeRoutine = StartCoroutine(ActionDelay(3f));
+        noiseSeed = Random.Range(0, 1024f);
+
+        colorizerTime = Random.Range(8f, 30f);
+        StartCoroutine(ColorizerRoutine());
+    }
+
+    void Update()
+    {
+        if (EnableColorizer)
+        {
+            AtmosphereColor = Color.HSVToRGB(Time.time/32%1f, 1, 1);
+            AtmosphereRate = (Perlin.Noise(Time.time / 4 + noiseSeed)+1f)/2;
+            for (int i = 0; i < NUM_BUFFERS; i++)
+            {
+                videoPlane[i].PlaneMaterial.SetColor("_AtmosCol", AtmosphereColor);
+                videoPlane[i].PlaneMaterial.SetFloat("_AtmosPct", AtmosphereRate * colorizerDamping);
+            }
+        }
+    }
+
+    IEnumerator ColorizerRoutine()
+    {
+        while (EnableColorizer)
+        {
+            yield return new WaitForSeconds(colorizerTime);
+            colorizerOn = !colorizerOn;
+            colorizerTime = colorizerOn ? Random.Range(8f, 30f) : Random.Range(30f, 120f);
+
+            if (colorizerOn)
+            {
+                for (int i = 0; i < NUM_BUFFERS; i++)
+                {
+                    StartCoroutine(ReefHelper.FadeNormalized(ReefHelper.FadeType.In, 4f,
+                        (x) => colorizerDamping = x, null
+                    ));
+                }
+            }
+            else
+            {
+                for (int i = 0; i < NUM_BUFFERS; i++)
+                {
+                    StartCoroutine(ReefHelper.FadeNormalized(ReefHelper.FadeType.Out, 4f,
+                        (x) => colorizerDamping = x, null
+                    ));
+                }
+            }
+        }
     }
 
     private void NormalizedAudioLevelInput(float level)
@@ -117,6 +174,8 @@ public class VideoPlaneManager : MonoBehaviour
             yield return null;
         }
         videoPlane[_front].PlaneMaterial.SetFloat("_Alpha", 1f);
+        PrepareClip(videoPlayer[_back]);
+
         yield return new WaitForSeconds(wait);
 
         IEnumerator nextAction = SwapTransition(Random.Range(MinDuration, MaxDuration), Random.Range(MinTransitionTime, MaxTransitionTime));
@@ -140,10 +199,11 @@ public class VideoPlaneManager : MonoBehaviour
             for (int i = 0; i < attempts; i++)
             {
                 next = Random.Range(0, videoClips.Length);
-                if (next != videoIndex) break;
+                if (!videoIndexStack.Contains(next)) break;
             }
             previousVideoIndex = videoIndex;
             videoIndex = next;
+            videoIndexStack.Push(next);
 
             vp.clip = videoClips[videoIndex];
         }
@@ -164,5 +224,30 @@ public class VideoPlaneManager : MonoBehaviour
                 (x) => brightnessPlane.PlaneMaterial.SetFloat("_Alpha", x * DarknessLevel),
                 null));
         }
+    }
+}
+
+public class VideoIndexStack
+{
+    public int[] Stack { get; private set; }
+    private int index = 0;
+
+    public VideoIndexStack(int size)
+    {
+        Stack = new int[size];
+    }
+
+    public void Push(int i)
+    {
+        Stack[index] = i;
+        index = (index + 1) % Stack.Length;
+    }
+
+    public bool Contains(int i)
+    {
+        for (int j=0; i<Stack.Length; i++)
+            if (i == Stack[j]) return true;
+
+        return false;
     }
 }

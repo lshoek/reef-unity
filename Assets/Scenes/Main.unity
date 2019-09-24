@@ -736,10 +736,10 @@ MonoBehaviour:
   MaxShowDuration: 12
   TimeBetweenShows: 2
   WeightSettings:
-  - 0
-  - 200
-  - 0
-  - 0
+  - 100
+  - 100
+  - 100
+  - 100
   currentShow: {fileID: 0}
   Active: 1
   m_currentAquaticLayerMode: 0
@@ -1539,6 +1539,7 @@ GameObject:
   - component: {fileID: 1895483068}
   - component: {fileID: 1895483071}
   - component: {fileID: 1895483070}
+  - component: {fileID: 1895483069}
   m_Layer: 0
   m_Name: AspectReference
   m_TagString: Untagged
@@ -1560,6 +1561,18 @@ Transform:
   m_Father: {fileID: 1368586041}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: -90, y: 0, z: 0}
+--- !u!114 &1895483069
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1895483067}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3cc5a8b241598a24fb6701386eccad07, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!23 &1895483070
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -1850,10 +1863,12 @@ MonoBehaviour:
   - {fileID: 32900000, guid: d064f0bdb80f76641ae72dc8e0e8642b, type: 3}
   - {fileID: 32900000, guid: 7350ac69f51d4284f9cce13198827db0, type: 3}
   - {fileID: 32900000, guid: 50aaabab4bd6b9e4ba930573c6cb46b6, type: 3}
-  - {fileID: 32900000, guid: c46313192300c5d489fcc0da45898290, type: 3}
   MinDuration: 10
   MaxDuration: 30
   MinTransitionTime: 2
   MaxTransitionTime: 10
   TintMultiplier: -2
   DarknessLevel: 0.5
+  EnableColorizer: 1
+  AtmosphereColor: {r: 1, g: 1, b: 1, a: 1}
+  AtmosphereRate: 0

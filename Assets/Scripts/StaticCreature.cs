@@ -32,13 +32,8 @@ public class StaticCreature : MonoBehaviour
         {
             if (value)
             {
-                m_beatInfoManager.OnNormalizedAudioLevelInputLP += (x) => NormalizedAudioLevelInput(x);
                 rotationOffset = Random.Range(0, 360f);
                 rotationDirection = Random.Range(0, 2) > 0 ? -1f : 1f;
-            }
-            else
-            {
-                m_beatInfoManager.OnNormalizedAudioLevelInputLP -= (x) => NormalizedAudioLevelInput(x);
             }
             Renderer.enabled = value;
             isActive = value;
@@ -53,6 +48,7 @@ public class StaticCreature : MonoBehaviour
     void Start()
     {
         m_beatInfoManager = Application.Instance.BeatInfoManager;
+        m_beatInfoManager.OnNormalizedAudioLevelInputLP += (x) => NormalizedAudioLevelInput(x);
 
         position = transform.position;
         forward = (position + Random.insideUnitCircle).normalized;
@@ -80,9 +76,12 @@ public class StaticCreature : MonoBehaviour
 
     private void NormalizedAudioLevelInput(float level)
     {
-        Renderer.material.SetFloat("_TintPct", level);
-        Renderer.material.SetColor("_Tint", TintColor);
-        transform.localScale = new Vector3(cachedScale + level*LevelDamping, cachedScale + level*LevelDamping, 1f);
+        if (IsActive)
+        {
+            Renderer.material.SetFloat("_TintPct", level);
+            Renderer.material.SetColor("_Tint", TintColor);
+            transform.localScale = new Vector3(cachedScale + level * LevelDamping, cachedScale + level * LevelDamping, 1f);
+        }
     }
 
     public void FadeOut(float duration, Action callback)
