@@ -10,6 +10,7 @@ public class KinectDepthManager : MonoBehaviour
 
     public float DepthScale = 1.25f;
     private float worldDepth;
+    private Vector3 depthOffset;
 
     public bool IsActive { get; private set; } = false;
 
@@ -31,14 +32,14 @@ public class KinectDepthManager : MonoBehaviour
             {
                 int idx = y * m_kinectDepthMesh.Width + x;
                 float d = m_kinectDepthMesh.verts[idx].z;
-                if (d > depth_max)
+                if (d > depth_max && d < Application.Instance.FarClipPlaneDistance)
                 {
                     depth_max = d;
                     index_max = idx;
                 }
             }
         }
-        return m_kinectDepthMesh.verts[index_max];
+        return m_kinectDepthMesh.verts[index_max] + depthOffset;
     }
 
     void Start()
@@ -51,12 +52,13 @@ public class KinectDepthManager : MonoBehaviour
 
         float depthAspect = m_frameManager.DepthWidthDownsampled / m_frameManager.DepthHeightDownsampled;
         Vector2 meshSize = new Vector2(ReefHelper.DisplayHeight * depthAspect, ReefHelper.DisplayHeight);
+        depthOffset = new Vector3(-ReefHelper.DisplayHeight * depthAspect / 2, ReefHelper.DisplayHeight / 2);
 
         m_kinectDepthMesh.SetOffset(new Vector2(0.5f, 0.5f));
         m_kinectDepthMesh.Init(meshSize, false);
 
         maxDepth = m_frameManager.MaxReliableDistance;
-        worldDepth = Application.Instance.MainCameraToBackgroundPlaneDistance * DepthScale / maxDepth;
+        worldDepth = Application.Instance.FarClipPlaneDistance * DepthScale / maxDepth;
     }
 
     void Update()
@@ -85,7 +87,7 @@ public class KinectDepthManager : MonoBehaviour
                 ushort d = depthData[fullSampleIndex + downSampleSize / 2];
                 d = (d < maxDepth) ? d : maxDepth;
                 d = (d == 0) ? maxDepth : d;
-                float depth = d*scale + Application.Instance.MainCameraToBackgroundPlaneDistance - maxDepth * scale;
+                float depth = d*scale + Application.Instance.FarClipPlaneDistance - maxDepth * scale;
 
                 depthMesh.verts[downSampleIndex].z = depth;
             }

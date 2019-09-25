@@ -24,6 +24,11 @@ public class BoidManager : Show
     private BeatInfoManager m_beatInfoManager;
     private VideoPlaneManager m_videoPlaneManager;
 
+    private Vector2 followPoint;
+    private Texture particleTexture;
+    private TextureObject2D boidTargetCursor;
+    private bool mouseActivated = false;
+
     private int boidClipIndex = 0;
     private const int VIDEO_RT_RES = 128;
 
@@ -79,6 +84,21 @@ public class BoidManager : Show
     {
         if (boids != null && base.Active)
         {
+            // cursor stuff
+            if (Input.GetMouseButtonDown(0))
+            {
+                mouseActivated = true;
+                if (boidTargetCursor == null)
+                {
+                    GameObject ob = Instantiate(Resources.Load("Prefabs/Cursor") as GameObject);
+                    ob.transform.SetParent(Application.Instance.WorldParent);
+                    boidTargetCursor = ob.GetComponent<TextureObject2D>();
+                }
+                boidTargetCursor.Renderer.material.mainTexture = m_dataAccessor.GetRandomParticle();
+            }
+            followPoint = Application.Instance.MainCamera.ScreenToWorldPoint(Input.mousePosition);
+            if (boidTargetCursor != null) boidTargetCursor.transform.position = new Vector3(followPoint.x, followPoint.y, 1);
+
             // calculate necessary flock data 
             int numBoids = boids.Length;
             var boidData = new BoidData[numBoids];
@@ -108,6 +128,7 @@ public class BoidManager : Show
                 boids[i].centreOfFlockmates = boidData[i].flockCentre;
                 boids[i].avgAvoidanceHeading = boidData[i].avoidanceHeading;
                 boids[i].numPerceivedFlockmates = boidData[i].numFlockmates;
+                boids[i].Target = mouseActivated ? followPoint : Vector2.zero;
 
                 boids[i].UpdateBoid();
             }
@@ -150,6 +171,10 @@ public class BoidManager : Show
         {
             m_videoPlaneManager.DarkenBackground(false);
             m_depthManager.SetActive(false);
+
+            mouseActivated = false;
+            Destroy(boidTargetCursor.gameObject);
+            boidTargetCursor = null;
 
             base.Cancel();
         }));

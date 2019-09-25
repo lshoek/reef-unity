@@ -6,7 +6,7 @@ public class Application : MonoBehaviour
     [HideInInspector] public Transform WorldParent;
 
     public Camera MainCamera { get; private set; }
-    public readonly float MainCameraToBackgroundPlaneDistance = 100f;
+    public float FarClipPlaneDistance { get; private set; }
 
     public KinectFrameManager KinectFrameManager { get; private set; }
     public StaticManager StaticManager { get; private set; }
@@ -24,10 +24,13 @@ public class Application : MonoBehaviour
         if (Instance == null)
             Instance = this;
 
+        Cursor.visible = false;
+
+        MainCamera = Camera.main;
+        FarClipPlaneDistance = MainCamera.farClipPlane;
         UnityEngine.Application.targetFrameRate = 60;
         WorldParent = GameObject.FindGameObjectWithTag("WorldParent").transform;
-        
-        MainCamera = Camera.main;
+
         KinectFrameManager = FindObjectOfType<KinectFrameManager>();
         StaticManager = FindObjectOfType<StaticManager>();
         CreatureManager = FindObjectOfType<CreatureManager>();

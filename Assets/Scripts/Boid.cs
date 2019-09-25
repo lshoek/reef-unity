@@ -13,7 +13,7 @@ public class Boid : MonoBehaviour
     public Vector2 avgAvoidanceHeading;
     public float numPerceivedFlockmates;
 
-    private Transform target;
+    public Vector2 Target { get; set; }
 
     public Transform InnerTransform { get; set; }
     public Renderer Renderer { get; private set; }
@@ -50,9 +50,9 @@ public class Boid : MonoBehaviour
     {
         Vector2 acceleration = Vector2.zero;
 
-        if (target != null)
+        if (Target != Vector2.zero)
         {
-            Vector2 offsetToTarget = new Vector2(target.position.x, target.position.y) - position;
+            Vector2 offsetToTarget = new Vector2(Target.x, Target.y) - position;
             acceleration = SteerTowards(offsetToTarget) * settings.targetWeight;
         }
 
@@ -140,18 +140,11 @@ public class Boid : MonoBehaviour
 
     void OnDrawGizmos()
     {
-        //Gizmos.DrawWireSphere(To3D(position), settings.boundsRadius);
+        Gizmos.DrawWireSphere(To3D(position), settings.boundsRadius);
 
-        //Gizmos.color = Color.red;
-        //Gizmos.DrawLine(To3D(position), To3D(position + forward));
-
-        //Vector2[] rayDirections = BoidHelper.directions;
-        //for (int i = 0; i < rayDirections.Length; i++)
-        //{
-        //    Vector2 worldSpaceDir = transform.TransformDirection(rayDirections[i]);
-        //    Ray ray = new Ray(position, worldSpaceDir);
-        //    Gizmos.DrawLine(ray.origin, ray.origin + ray.direction);
-        //}
+        Gizmos.color = Color.red;
+        Gizmos.DrawLine(To3D(position), To3D(position + forward));
+        Gizmos.DrawLine(To3D(position), To3D(position + Target.normalized));
     }
 }
 

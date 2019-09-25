@@ -230,7 +230,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &285413598
 Transform:
   m_ObjectHideFlags: 0
@@ -732,9 +732,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   InitialDelay: 1
-  MinShowDuration: 10
-  MaxShowDuration: 12
-  TimeBetweenShows: 2
+  MinShowDuration: 30
+  MaxShowDuration: 60
+  TimeBetweenShows: 1
   WeightSettings:
   - 100
   - 100
@@ -759,7 +759,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &840971552
 Transform:
   m_ObjectHideFlags: 0
@@ -1775,7 +1775,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &2016452568
 Transform:
   m_ObjectHideFlags: 0
@@ -1863,6 +1863,7 @@ MonoBehaviour:
   - {fileID: 32900000, guid: d064f0bdb80f76641ae72dc8e0e8642b, type: 3}
   - {fileID: 32900000, guid: 7350ac69f51d4284f9cce13198827db0, type: 3}
   - {fileID: 32900000, guid: 50aaabab4bd6b9e4ba930573c6cb46b6, type: 3}
+  - {fileID: 32900000, guid: c46313192300c5d489fcc0da45898290, type: 3}
   MinDuration: 10
   MaxDuration: 30
   MinTransitionTime: 2
