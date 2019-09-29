@@ -230,7 +230,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &285413598
 Transform:
   m_ObjectHideFlags: 0
@@ -260,6 +260,7 @@ MonoBehaviour:
   Layer: 1
   Scale: 1.65
   FadeOutDuration: 5
+  AlwaysUseVideo: 0
   TintColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1001 &298710963
 PrefabInstance:
@@ -613,7 +614,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f7614993d5c739c44a5438341a865b68, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  UseAudioInterface: 0
+  UseAudioInterface: 1
   NormalizedAudioPeakThreshold: 0.75
   beatTimeout: 120
 --- !u!114 &634230303
@@ -734,12 +735,13 @@ MonoBehaviour:
   InitialDelay: 1
   MinShowDuration: 30
   MaxShowDuration: 60
-  TimeBetweenShows: 1
+  MinTimeBetweenShows: 10
+  MaxTimeBetweenShows: 45
   WeightSettings:
   - 100
   - 100
   - 100
-  - 100
+  - 50
   currentShow: {fileID: 0}
   Active: 1
   m_currentAquaticLayerMode: 0
@@ -759,7 +761,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &840971552
 Transform:
   m_ObjectHideFlags: 0
@@ -969,9 +971,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Depth: 2
-  AmbientColor: {r: 0.08220911, g: 0, b: 1, a: 1}
-  AmbientColorRate: 0.5
-  ShaderDepthMin: 0.01
+  AmbientColor: {r: 0.7924528, g: 0.43734425, b: 0.667687, a: 1}
+  AmbientColorRate: 0
+  AmbientColorMult: 20
+  ShaderDepthMin: 0.0175
   ShaderDepthMinRamp: 0.025
   ShaderDepthMax: 0.01
   ShaderDepthMaxRamp: 0.0025
@@ -1301,6 +1304,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _clips:
   - {fileID: 32900000, guid: ca939a1bf88470f4aa89b8fd4c498563, type: 3}
+  - {fileID: 32900000, guid: 64eb9a09d21b77a4d96d6535a7e18be4, type: 3}
+  - {fileID: 32900000, guid: fb1d1ff1617eb8a4f9c1037d0f69450c, type: 3}
+  - {fileID: 32900000, guid: 02211e75f495edd418072d523d5e993b, type: 3}
+  - {fileID: 32900000, guid: 8c3869cdce6f7bc4d997166459389b62, type: 3}
+  - {fileID: 32900000, guid: 84170531741f6774f8fdfb3ff8ce4612, type: 3}
+  - {fileID: 32900000, guid: d7bb2bece45a161438e701af64f7da61, type: 3}
+  - {fileID: 32900000, guid: 5a9cdfb02fca29340bca4165e0efba7f, type: 3}
 --- !u!1 &1485915077
 GameObject:
   m_ObjectHideFlags: 0
@@ -1758,7 +1768,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29b8be1ff7708df4c851088602acf281, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  DepthScale: 1.25
+  DepthScale: 1.5
 --- !u!1 &2016452567
 GameObject:
   m_ObjectHideFlags: 0
@@ -1775,7 +1785,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &2016452568
 Transform:
   m_ObjectHideFlags: 0
@@ -1805,7 +1815,6 @@ MonoBehaviour:
   VideoCreaturesOnly: 1
   MaxCreatures: 8
   Layer: 1
-  EscapeDuration: 10
   FadeOutDuration: 10
   TintColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1 &2067985255
@@ -1863,7 +1872,6 @@ MonoBehaviour:
   - {fileID: 32900000, guid: d064f0bdb80f76641ae72dc8e0e8642b, type: 3}
   - {fileID: 32900000, guid: 7350ac69f51d4284f9cce13198827db0, type: 3}
   - {fileID: 32900000, guid: 50aaabab4bd6b9e4ba930573c6cb46b6, type: 3}
-  - {fileID: 32900000, guid: c46313192300c5d489fcc0da45898290, type: 3}
   MinDuration: 10
   MaxDuration: 30
   MinTransitionTime: 2

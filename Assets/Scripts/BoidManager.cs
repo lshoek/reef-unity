@@ -173,9 +173,11 @@ public class BoidManager : Show
             m_depthManager.SetActive(false);
 
             mouseActivated = false;
-            Destroy(boidTargetCursor.gameObject);
-            boidTargetCursor = null;
-
+            if (boidTargetCursor != null)
+            {
+                Destroy(boidTargetCursor.gameObject);
+                boidTargetCursor = null;
+            }
             base.Cancel();
         }));
     }

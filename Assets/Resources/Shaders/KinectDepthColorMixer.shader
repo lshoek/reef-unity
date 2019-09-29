@@ -11,7 +11,7 @@ Properties
 	_DepthMaxRamp ("DepthMaxRamp", Float) = 0
 	_Alpha ("Alpha", Float) = 0
 	_AmbientColorRate ("AmbientColorRate", Float) = 1.0
-	//_AmbientColorMult ("AmbientColorMult", Float) = 1.0
+	_AmbientColorMult ("AmbientColorMult", Float) = 1.0
 }
 SubShader {
 Pass {
@@ -49,7 +49,7 @@ float _DepthMinRamp;
 float _DepthMaxRamp;
 float _Alpha;
 float _AmbientColorRate;
-//float _AmbientColorMult;
+float _AmbientColorMult;
 
 StructuredBuffer<float2> DepthCoords;
 
@@ -100,7 +100,7 @@ fixed4 frag (v2f i, in uint id : SV_InstanceID) : COLOR
 	fixed3 gradient = _AmbientColor.rgb * gray;
 	fixed3 ambient = texcol.rgb * _AmbientColor.rgb;
 
-	col.rgb = lerp(gradient, ambient, _AmbientColorRate);
+	col.rgb = lerp(gradient, ambient, _AmbientColorRate) * _AmbientColorMult;
 	col.a = inv(smoothstep(0, 1.0, pct)) * min(lb_min,lb_max) * _Alpha;
 
 	return col;

@@ -6,7 +6,7 @@ public class KinectDepthColorView : MonoBehaviour
     public int Depth = 2;
     public Color AmbientColor = Color.white;
     [Range(0, 1f)] public float AmbientColorRate = 1f;
-    //[Range(0, 3f)] public float AmbientColorMult = 1f;
+    [Range(0, 50f)] public float AmbientColorMult = 1f;
     [Range(0, 0.1f)] public float ShaderDepthMin = 0.0025f;
     [Range(0, 0.1f)] public float ShaderDepthMinRamp = 0.025f;
     [Range(0, 0.1f)] public float ShaderDepthMax = 0.01f;
@@ -95,7 +95,7 @@ public class KinectDepthColorView : MonoBehaviour
     {
         m_pTextureMixMaterial.SetColor("_AmbientColor", AmbientColor);
         m_pTextureMixMaterial.SetFloat("_AmbientColorRate", AmbientColorRate);
-        //m_pTextureMixMaterial.SetFloat("_AmbientColorMult", AmbientColorMult);
+        m_pTextureMixMaterial.SetFloat("_AmbientColorMult", AmbientColorMult);
         m_pTextureMixMaterial.SetFloat("_DepthMin", ShaderDepthMin);
         m_pTextureMixMaterial.SetFloat("_DepthMax", ShaderDepthMax);
         m_pTextureMixMaterial.SetFloat("_DepthMinRamp", ShaderDepthMinRamp);

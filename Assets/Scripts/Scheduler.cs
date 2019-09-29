@@ -8,8 +8,8 @@ public class Scheduler : MonoBehaviour
     public float MinShowDuration = 10f;
     public float MaxShowDuration = 60f;
 
-    public float TimeBetweenShows = 10f;
-    private float cachedTimeBetweenShows;
+    public float MinTimeBetweenShows = 10f;
+    public float MaxTimeBetweenShows = 30f;
 
     public float[] WeightSettings;
     private float[] showWeights;
@@ -52,7 +52,6 @@ public class Scheduler : MonoBehaviour
         titleManager = Application.Instance.TitleManager;
 
         CurrentAquaticLayerMode = 0;
-        cachedTimeBetweenShows = TimeBetweenShows;
         StartCoroutine(SchedulerRoutine());
     }
 
@@ -72,7 +71,6 @@ public class Scheduler : MonoBehaviour
         }
         if (endCurrentShow)
         {
-            TimeBetweenShows = 0f;
             currentShow.StopCoroutine(currentShow.CurrentRoutine);
             if (currentShow.Active && !currentShow.EndOfSequence)
                 currentShow.EndOfSequence = true;
@@ -109,7 +107,6 @@ public class Scheduler : MonoBehaviour
             currentShow.Duration = Random.Range(MinShowDuration, MaxShowDuration);
 
             ActionQueued = false;
-            TimeBetweenShows = cachedTimeBetweenShows;
 
             currentShow.Renew();
             yield return new WaitUntil(() => currentShow.EndOfSequence);
@@ -117,7 +114,10 @@ public class Scheduler : MonoBehaviour
             currentShow.Cancel();
             yield return new WaitUntil(() => !currentShow.Active);
 
-            yield return new WaitForSeconds(TimeBetweenShows);
+            if (!ActionQueued)
+            {
+                yield return new WaitForSeconds(Random.Range(MinTimeBetweenShows, MaxTimeBetweenShows));
+            }
         }
         availableShows.Clear();
     }

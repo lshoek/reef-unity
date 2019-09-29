@@ -11,7 +11,6 @@ public class CreatureManager : Show
     public int MaxCreatures = 4;
     public int Layer = 1;
 
-    public float EscapeDuration = 5f;
     public float FadeOutDuration = 5f;
 
     public Color TintColor = Color.white;

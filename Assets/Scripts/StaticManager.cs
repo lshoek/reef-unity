@@ -12,6 +12,7 @@ public class StaticManager : Show
     public int Layer = 1;
     public float Scale = 1.0f;
     public float FadeOutDuration = 5f;
+    public bool AlwaysUseVideo = false;
 
     public Color TintColor = Color.white;
 
@@ -23,7 +24,6 @@ public class StaticManager : Show
     private StaticCreature creature;
 
     private bool useVideo = true;
-    private bool rotateCreature = false;
     private const int VIDEO_RT_RES = 1024;
 
     void Start()
@@ -60,7 +60,7 @@ public class StaticManager : Show
     {
         videoPlayer.clip = m_dataAccessor.GetRandomClip();
 
-        useVideo = Random.Range(0, m_dataAccessor.Particles.Length + m_dataAccessor.Clips.Length) >= m_dataAccessor.Particles.Length;
+        useVideo = (AlwaysUseVideo) ? true : Random.Range(0, m_dataAccessor.Particles.Length + m_dataAccessor.Clips.Length) >= m_dataAccessor.Particles.Length;
 
         creature.Renderer.material.mainTexture = useVideo ? 
             videoPlayer.targetTexture : 
